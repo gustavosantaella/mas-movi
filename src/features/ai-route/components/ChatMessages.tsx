@@ -16,6 +16,7 @@ type ChatMessagesProps = {
 export function ChatMessages({ messages }: ChatMessagesProps) {
   return (
     <ScrollView
+      style={{ flex: 1 }}
       contentContainerStyle={styles.messagesScroll}
       showsVerticalScrollIndicator={false}
     >
