@@ -3,23 +3,26 @@ import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 
+import { Colors } from '@/theme';
+
 export default function TabLayout() {
     const router = useRouter();
 
     return (
         <Tabs
             screenOptions={{
-                tabBarActiveTintColor: '#4776E6',
-                tabBarInactiveTintColor: '#8892B0',
+                tabBarActiveTintColor: Colors.primary,
+                tabBarInactiveTintColor: Colors.textSecondary,
                 tabBarStyle: styles.tabBar,
+                animation: 'shift',
                 tabBarBackground: () => (
                     <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
                 ),
                 headerStyle: {
-                    backgroundColor: '#0F2027', // Dark solid header to match gradients
+                    backgroundColor: Colors.bgDark,
                 },
                 headerShadowVisible: false,
-                headerTintColor: '#fff',
+                headerTintColor: Colors.textPrimary,
                 headerLeft: () => (
                     <TouchableOpacity
                         onPress={() => router.push('/profile')}
@@ -35,7 +38,7 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="index"
                 options={{
-                    headerShown: false, // The home screen has its own gradient header area
+                    headerShown: false,
                     title: 'Inicio',
                     tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
                 }}
@@ -54,6 +57,7 @@ export default function TabLayout() {
                     headerShown: false,
                     title: 'IA',
                     tabBarIcon: ({ color }) => <MaterialCommunityIcons name="robot" size={26} color={color} />,
+                    tabBarStyle: { display: 'none' },
                 }}
             />
             <Tabs.Screen
@@ -85,8 +89,8 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: '#4776E6',
+        backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
-    }
+    },
 });
