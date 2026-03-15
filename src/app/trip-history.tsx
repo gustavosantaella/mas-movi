@@ -36,7 +36,8 @@ function getDateLabel(dateStr: string): string {
 
   if (diffDays === 0) return 'Hoy';
   if (diffDays === 1) return 'Ayer';
-  return date.toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' });
+  const label = date.toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' });
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 const DATE_FILTERS = [
