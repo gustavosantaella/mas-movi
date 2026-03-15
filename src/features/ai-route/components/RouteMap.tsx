@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import MapView from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
@@ -21,7 +21,6 @@ export function RouteMap({ fullScreen = false, hideOverlays = false }: { fullScr
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const mapRef = useRef<MapView>(null);
   const [region, setRegion] = useState(DEFAULT_REGION);
 
   useEffect(() => {
@@ -30,14 +29,12 @@ export function RouteMap({ fullScreen = false, hideOverlays = false }: { fullScr
       if (status !== 'granted') return;
 
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const userRegion = {
+      setRegion({
         latitude: loc.coords.latitude,
         longitude: loc.coords.longitude,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
-      };
-      setRegion(userRegion);
-      mapRef.current?.animateToRegion(userRegion, 800);
+      });
     })();
   }, []);
 
@@ -51,9 +48,8 @@ export function RouteMap({ fullScreen = false, hideOverlays = false }: { fullScr
   return (
     <View style={[styles.mapContainer, fullScreen && { flex: 1 }]}>
       <MapView
-        ref={mapRef}
         style={styles.map}
-        initialRegion={region}
+        region={region}
         showsUserLocation
         showsMyLocationButton={false}
         userInterfaceStyle="dark"
