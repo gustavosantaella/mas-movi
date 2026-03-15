@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams } from 'expo-router';
 
 import { Gradients } from '@/theme';
 import { RouteMap } from '@/features/ai-route/components/RouteMap';
@@ -11,6 +12,9 @@ import { aiRouteStyles as styles } from '@/features/ai-route/styles';
 type Message = { id: string; text: string; sender: 'ai' | 'user' };
 
 export default function AIRouteScreen() {
+  const { fromHistory } = useLocalSearchParams<{ fromHistory?: string }>();
+  const isHistoryView = fromHistory === '1';
+
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', text: '¡Hola! Soy tu asistente de movilidad inteligente. ¿Hacia dónde te diriges hoy?', sender: 'ai' },
   ]);
@@ -22,7 +26,6 @@ export default function AIRouteScreen() {
     setMessages(prev => [...prev, { id: Date.now().toString(), text: inputText, sender: 'user' as const }]);
     setInputText('');
 
-    // Simulate AI response
     setTimeout(() => {
       setMessages(prev => [
         ...prev,
@@ -33,20 +36,22 @@ export default function AIRouteScreen() {
 
   return (
     <View style={styles.container}>
-      <RouteMap />
+      <RouteMap fullScreen={isHistoryView} />
 
-      <KeyboardAvoidingView
-        style={styles.chatContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <LinearGradient
-          colors={[Gradients.dark[0], Gradients.dark[1]] as [string, string]}
-          style={styles.chatBackground}
+      {!isHistoryView && (
+        <KeyboardAvoidingView
+          style={styles.chatContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <ChatMessages messages={messages} />
-          <ChatInput value={inputText} onChangeText={setInputText} onSend={handleSend} />
-        </LinearGradient>
-      </KeyboardAvoidingView>
+          <LinearGradient
+            colors={[Gradients.dark[0], Gradients.dark[1]] as [string, string]}
+            style={styles.chatBackground}
+          >
+            <ChatMessages messages={messages} />
+            <ChatInput value={inputText} onChangeText={setInputText} onSend={handleSend} />
+          </LinearGradient>
+        </KeyboardAvoidingView>
+      )}
     </View>
   );
 }

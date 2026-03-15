@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { Colors } from '@/theme';
 import { aiRouteStyles as styles } from '../styles';
 
-export function RouteMap() {
+export function RouteMap({ fullScreen = false }: { fullScreen?: boolean }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -22,7 +22,7 @@ export function RouteMap() {
   };
 
   return (
-    <View style={styles.mapContainer}>
+    <View style={[styles.mapContainer, fullScreen && { flex: 1 }]}>
       <MapView
         style={styles.map}
         initialRegion={{

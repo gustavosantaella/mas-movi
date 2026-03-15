@@ -10,9 +10,9 @@ export function ScannerControls() {
       <View style={styles.controlsRow}>
         <TouchableOpacity style={styles.iconButton}>
           <View style={styles.iconCircle}>
-            <Ionicons name="images" size={24} color="#fff" />
+            <Ionicons name="flashlight" size={24} color="#fff" />
           </View>
-          <Text style={styles.iconLabel}>Galería</Text>
+          <Text style={styles.iconLabel}>Linterna</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.flashButton}>

@@ -53,7 +53,7 @@ export function QuickActions() {
       <TouchableOpacity
         style={styles.gridItem}
         activeOpacity={0.8}
-        onPress={() => router.push('/payment')}
+        onPress={() => router.push('/trip-history')}
       >
         <LinearGradient
           colors={Gradients.primary as unknown as [string, string, ...string[]]}

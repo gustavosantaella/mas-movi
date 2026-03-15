@@ -17,9 +17,23 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <Stack
+        screenOptions={{
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
+          contentStyle: { backgroundColor: '#0F2027' },
+        }}
+      >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="profile" options={{ presentation: 'modal', title: 'Perfil de Usuario' }} />
+        <Stack.Screen name="profile" options={{ 
+          presentation: 'modal', 
+          title: 'Perfil de Usuario',
+          gestureEnabled: true,
+        }} />
+        <Stack.Screen name="trip-history" options={{ 
+          headerShown: false,
+          gestureEnabled: true,
+        }} />
       </Stack>
     </ThemeProvider>
   );

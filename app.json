@@ -24,7 +24,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false,
+      "predictiveBackGestureEnabled": true,
       "package": "com.masmovi.maasapp",
       "permissions": [
         "CAMERA",
@@ -61,7 +61,8 @@
           "locationAlwaysPermission": "MaaS necesita tu ubicación en segundo plano para notificarte sobre unidades cercanas.",
           "locationWhenInUsePermission": "MaaS necesita tu ubicación para calcular rutas de transporte."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

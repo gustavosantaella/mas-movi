@@ -7,6 +7,7 @@ import { Colors } from '@/theme';
 import { GradientScreen, SectionTitle } from '@/components/ui';
 import { BalanceCard } from '@/features/home/components/BalanceCard';
 import { QuickActions } from '@/features/home/components/QuickActions';
+import { RecentTrips } from '@/features/home/components/RecentTrips';
 import { homeStyles as styles } from '@/features/home/styles';
 
 export default function HomeScreen() {
@@ -31,6 +32,10 @@ export default function HomeScreen() {
 
       {/* Balance */}
       <BalanceCard />
+
+      {/* Recent Trips */}
+      <SectionTitle title="Viajes Recientes" />
+      <RecentTrips />
 
       {/* Actions */}
       <SectionTitle title="Acciones Rápidas" />

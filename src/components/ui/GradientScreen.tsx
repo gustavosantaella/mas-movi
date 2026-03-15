@@ -1,9 +1,10 @@
 import React, { type PropsWithChildren } from 'react';
-import { StyleSheet, ScrollView, type ViewStyle } from 'react-native';
+import { StyleSheet, ScrollView, type ViewStyle, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Gradients } from '@/theme';
+import { useTabBarVisibility } from '@/hooks/useTabBarVisibility';
 
 type GradientScreenProps = PropsWithChildren<{
   /** Gradient colors override — defaults to Gradients.main */
@@ -24,9 +25,18 @@ export function GradientScreen({
   contentContainerStyle,
 }: GradientScreenProps) {
   const insets = useSafeAreaInsets();
+  const { onScroll } = useTabBarVisibility();
+
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    onScroll(e.nativeEvent.contentOffset.y);
+  };
 
   const content = scrollable ? (
-    <ScrollView contentContainerStyle={[styles.scrollContent, contentContainerStyle]}>
+    <ScrollView
+      contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
+    >
       {children}
     </ScrollView>
   ) : (
