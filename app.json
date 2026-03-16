@@ -14,7 +14,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "MaaS necesita acceso a la cámara para escanear códigos QR de pasaje en las unidades de transporte público.",
         "NSLocationWhenInUseUsageDescription": "MaaS necesita tu ubicación para mostrarte rutas de transporte, unidades cercanas y calcular la mejor ruta a tu destino.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "MaaS necesita tu ubicación en segundo plano para notificarte sobre las unidades de transporte cercanas y el estado de tu ruta en tiempo real."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "MaaS necesita tu ubicación en segundo plano para notificarte sobre las unidades de transporte cercanas y el estado de tu ruta en tiempo real.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -67,6 +68,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "020df3e3-af2a-4a7b-ac4d-c2f01a103cdd"
+      }
     }
   }
 }
