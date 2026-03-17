@@ -2,9 +2,11 @@
  * Shared UI components — barrel export.
  *
  * Usage:
- *   import { GradientScreen, GlassCard, GradientButton, SectionTitle } from '@/components/ui';
+ *   import { ScreenLayout, ScreenHeader, GradientScreen, GlassCard, GradientButton, SectionTitle } from '@/components/ui';
  */
 
+export { ScreenLayout } from './ScreenLayout';
+export { ScreenHeader } from './ScreenHeader';
 export { GradientScreen } from './GradientScreen';
 export { GlassCard } from './GlassCard';
 export { GradientButton } from './GradientButton';

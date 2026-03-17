@@ -25,14 +25,14 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="profile" options={{ 
-          presentation: 'transparentModal', 
+        <Stack.Screen name="profile" options={{
+          presentation: 'transparentModal',
           headerShown: false,
           gestureEnabled: true,
           contentStyle: { backgroundColor: 'transparent' },
           animation: 'slide_from_bottom',
         }} />
-        <Stack.Screen name="trip-history" options={{ 
+        <Stack.Screen name="trip-history" options={{
           headerShown: false,
           gestureEnabled: true,
         }} />
