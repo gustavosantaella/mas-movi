@@ -4,7 +4,7 @@
  */
 
 export const Colors = {
-  // ─── Brand ────────────────────────────────────────────
+  // ─── Brand (legacy dark theme) ────────────────────────
   primary: '#4776E6',
   primaryLight: '#8E54E9',
   accent: '#FF416C',
@@ -13,12 +13,24 @@ export const Colors = {
   info: '#40C4FF',
   warning: '#FFD54F',
 
+  // ─── Salmon Palette ───────────────────────────────────
+  salmon: '#FF7B5F',
+  salmonLight: '#FF9B85',
+  salmonSoft: '#FFB5A3',
+  coralIntense: '#FF6B4A',
+  peach: '#FFC9BD',
+  charcoal: '#2D3339',
+  grayNeutral: '#6B7280',
+  successGreen: '#10B981',
+
   // ─── Backgrounds ─────────────────────────────────────
   bgDark: '#0F2027',
   bgDarkMid: '#203A43',
   bgDarkDeep: '#101522',
   bgCard: '#1A1A24',
   bgBlack: '#000000',
+  bgWhite: '#FFFFFF',
+  bgLightGray: '#F7F7F9',
   bgSurface: 'rgba(255,255,255,0.05)',
   bgSurfaceLight: 'rgba(255,255,255,0.1)',
   bgSurfaceHover: 'rgba(255,255,255,0.15)',
@@ -33,6 +45,7 @@ export const Colors = {
   borderMedium: 'rgba(255,255,255,0.15)',
   borderBright: 'rgba(255,255,255,0.3)',
   borderDanger: 'rgba(255, 65, 108, 0.3)',
+  borderLightGray: '#E5E7EB',
 
   // ─── Text ─────────────────────────────────────────────
   textPrimary: '#fff',
@@ -71,4 +84,6 @@ export const Gradients = {
   accent: ['#FF416C', '#FF4B2B'] as const,
   info: ['#00B4DB', '#0083B0'] as const,
   surface: ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)'] as const,
+  salmonCard: ['#FF7B5F', '#FF9B85', '#FFB5A3'] as const,
+  salmonButton: ['#FF7B5F', '#FF6B4A'] as const,
 } as const;

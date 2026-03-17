@@ -1,159 +1,207 @@
 import { StyleSheet } from 'react-native';
 
-import { Colors, Gradients, BorderRadius } from '@/theme';
+import { Colors, BorderRadius } from '@/theme';
 
 export const homeStyles = StyleSheet.create({
-  header: {
-    marginBottom: 30,
-    marginTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  // ─── Screen ────────────────────────────────────────────
+  screen: {
+    flex: 1,
+    backgroundColor: Colors.bgWhite,
   },
-  profileButton: {
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+
+  // ─── Header ────────────────────────────────────────────
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  profileAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.salmon,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  greeting: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
+  headerName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.charcoal,
   },
-  subtitle: {
-    fontSize: 16,
-    color: Colors.textMuted,
-    marginTop: 5,
-    fontWeight: '500',
+  headerLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.salmon,
   },
 
   // ─── Balance Card ──────────────────────────────────────
   balanceCard: {
     borderRadius: BorderRadius.xl,
     padding: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 35,
-    borderWidth: 1,
-    borderColor: Colors.borderMedium,
+    marginBottom: 20,
     overflow: 'hidden',
   },
+  balanceTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
   balanceLabel: {
-    color: Colors.textLabel,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 5,
+    opacity: 0.9,
+    marginBottom: 6,
   },
   balanceValue: {
-    color: Colors.textPrimary,
-    fontSize: 36,
+    color: '#FFFFFF',
+    fontSize: 38,
     fontWeight: '900',
     letterSpacing: -1,
   },
-  topUpButton: {
-    backgroundColor: Colors.bgSurfaceMedium,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: BorderRadius.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.bgSurfaceBright,
-  },
-  topUpText: {
-    color: Colors.textPrimary,
-    fontWeight: '700',
-    marginLeft: 4,
-    fontSize: 14,
-  },
-
-  // ─── Action Grid ───────────────────────────────────────
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  gridItemAnimated: {
-    width: '48%',
-    marginBottom: 15,
-  },
-  gridItemInner: {
-    backgroundColor: Colors.bgSurface,
-    padding: 20,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.bgSurfaceLight,
-    alignItems: 'center',
-    height: 160,
+  walletIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     justifyContent: 'center',
-  },
-  gridItem: {
-    width: '48%',
-    backgroundColor: Colors.bgSurface,
-    padding: 20,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.bgSurfaceLight,
     alignItems: 'center',
-    height: 160,
-    marginBottom: 15,
-    justifyContent: 'center',
   },
-  iconContainer: {
-    width: 60,
-    height: 60,
+  rechargeButton: {
+    backgroundColor: '#FFFFFF',
     borderRadius: BorderRadius.pill,
-    alignItems: 'center',
+    paddingVertical: 14,
+    flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 15,
+    alignItems: 'center',
+    gap: 8,
   },
-  gridLabel: {
-    color: Colors.textPrimary,
+  rechargeText: {
+    color: Colors.salmon,
     fontSize: 16,
     fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 4,
   },
-  gridSubLabel: {
-    color: Colors.textDimmed,
-    fontSize: 12,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  gridItemSecondary: {
-    width: '100%',
-    backgroundColor: Colors.bgSurface,
-    padding: 20,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.bgSurfaceLight,
+
+  // ─── Quick Actions ─────────────────────────────────────
+  quickActionsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 5,
+    gap: 12,
+    marginBottom: 28,
   },
-  iconContainerSm: {
+  quickActionCard: {
+    flex: 1,
+    backgroundColor: Colors.bgWhite,
+    borderRadius: BorderRadius.xl,
+    paddingVertical: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.borderLightGray,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  quickActionIcon: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  gridLabelSecondary: {
-    color: Colors.textPrimary,
+  quickActionLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.charcoal,
+    textAlign: 'center',
+  },
+
+  // ─── Section Header ────────────────────────────────────
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
+    color: Colors.charcoal,
+  },
+  sectionLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.salmon,
+  },
+
+  // ─── Activity Items ────────────────────────────────────
+  activityList: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  activityCard: {
+    backgroundColor: Colors.bgWhite,
+    borderRadius: BorderRadius.lg,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.borderLightGray,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  activityIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  activityInfo: {
+    flex: 1,
+  },
+  activityTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.charcoal,
     marginBottom: 2,
   },
-  gridSubLabelSecondary: {
-    color: Colors.textDimmed,
-    fontSize: 14,
-    fontWeight: '500',
+  activityDesc: {
+    fontSize: 13,
+    color: Colors.grayNeutral,
+    marginBottom: 2,
+  },
+  activityDate: {
+    fontSize: 12,
+    color: Colors.grayNeutral,
+  },
+  activityAmount: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  amountNegative: {
+    color: Colors.charcoal,
+  },
+  amountPositive: {
+    color: Colors.successGreen,
   },
 });

@@ -21,14 +21,16 @@ export default function RootLayout() {
         screenOptions={{
           gestureEnabled: true,
           fullScreenGestureEnabled: true,
-          contentStyle: { backgroundColor: '#0F2027' },
+          contentStyle: { backgroundColor: '#FFFFFF' },
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ 
-          presentation: 'modal', 
-          title: 'Perfil de Usuario',
+          presentation: 'transparentModal', 
+          headerShown: false,
           gestureEnabled: true,
+          contentStyle: { backgroundColor: 'transparent' },
+          animation: 'slide_from_bottom',
         }} />
         <Stack.Screen name="trip-history" options={{ 
           headerShown: false,

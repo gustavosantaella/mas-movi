@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import { Gradients } from '@/theme';
+import { Colors, Gradients } from '@/theme';
 import { homeStyles as styles } from '../styles';
 
 export function BalanceCard() {
@@ -12,21 +12,30 @@ export function BalanceCard() {
 
   return (
     <LinearGradient
-      colors={Gradients.surface as unknown as [string, string, ...string[]]}
+      colors={Gradients.salmonCard as unknown as [string, string, ...string[]]}
       style={styles.balanceCard}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
-      <View>
-        <Text style={styles.balanceLabel}>Saldo Disponible</Text>
-        <Text style={styles.balanceValue}>$450.00 MXN</Text>
+      {/* Top row: label + amount  |  wallet icon */}
+      <View style={styles.balanceTop}>
+        <View>
+          <Text style={styles.balanceLabel}>Saldo Disponible</Text>
+          <Text style={styles.balanceValue}>Bs. 45.80</Text>
+        </View>
+        <View style={styles.walletIconCircle}>
+          <MaterialCommunityIcons name="wallet" size={24} color="#fff" />
+        </View>
       </View>
+
+      {/* Recharge button */}
       <TouchableOpacity
-        style={styles.topUpButton}
+        style={styles.rechargeButton}
         onPress={() => router.push('/payment')}
+        activeOpacity={0.85}
       >
-        <Ionicons name="add" size={20} color="#fff" />
-        <Text style={styles.topUpText}>Recarga</Text>
+        <MaterialCommunityIcons name="wallet-plus" size={20} color={Colors.salmon} />
+        <Text style={styles.rechargeText}>Recargar Monedero</Text>
       </TouchableOpacity>
     </LinearGradient>
   );

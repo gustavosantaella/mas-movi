@@ -1,11 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { Colors, Gradients } from '@/theme';
-import { GlassCard } from '@/components/ui';
 import { AvatarSection } from '@/features/profile/components/AvatarSection';
 import { SettingsList } from '@/features/profile/components/SettingsList';
 import { profileStyles as styles } from '@/features/profile/styles';
@@ -14,46 +12,55 @@ export default function ProfileScreen() {
   const router = useRouter();
 
   return (
-    <LinearGradient
-      colors={Gradients.dark as unknown as [string, string, ...string[]]}
-      style={styles.container}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
-          <Ionicons name="close" size={28} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mi Perfil</Text>
-        <View style={{ width: 28 }} />
-      </View>
+    <View style={styles.overlay}>
+      <View style={styles.sheet}>
+        {/* Handle bar */}
+        <View style={styles.handle} />
 
-      <View style={styles.content}>
-        <AvatarSection />
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            {/* Avatar + Name + ID */}
+            <AvatarSection />
 
-        {/* User ID Card */}
-        <GlassCard style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <View style={styles.iconBox}>
-              <MaterialIcons name="fingerprint" size={22} color={Colors.primary} />
+            {/* Info cards */}
+            <View style={styles.infoCardsSection}>
+              <View style={styles.infoCard}>
+                <Text style={styles.infoLabel}>Email</Text>
+                <Text style={styles.infoValue}>maria.rodriguez@email.com</Text>
+              </View>
+              <View style={styles.infoCard}>
+                <Text style={styles.infoLabel}>Miembro desde</Text>
+                <Text style={styles.infoValue}>Enero 2026</Text>
+              </View>
             </View>
-            <View style={styles.infoText}>
-              <Text style={styles.infoLabel}>User ID</Text>
-              <Text style={styles.infoValue}>USR-8A7B-49C2</Text>
-            </View>
-            <TouchableOpacity>
-              <Ionicons name="copy-outline" size={20} color={Colors.textSecondary} />
+
+            {/* Settings navigation */}
+            <SettingsList />
+
+            {/* Close button */}
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => router.back()}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={Gradients.salmonCard as unknown as [string, string, ...string[]]}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 30,
+                }}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              />
+              <Text style={styles.closeButtonText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
-        </GlassCard>
-
-        <SettingsList />
-
-        {/* Logout */}
-        <TouchableOpacity style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={22} color={Colors.textDanger} />
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
-        </TouchableOpacity>
+        </ScrollView>
       </View>
-    </LinearGradient>
+    </View>
   );
 }

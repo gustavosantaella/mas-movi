@@ -3,147 +3,153 @@ import { StyleSheet } from 'react-native';
 import { Colors, BorderRadius } from '@/theme';
 
 export const profileStyles = StyleSheet.create({
-  container: {
+  // ─── Bottom Sheet Container ────────────────────────────
+  overlay: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'flex-end',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+  sheet: {
+    backgroundColor: Colors.bgWhite,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 40,
+    maxHeight: '85%',
   },
-  closeButton: {
-    padding: 5,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+  handle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#D1D5DB',
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 24,
   },
   content: {
-    flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
 
   // ─── Avatar ───────────────────────────────────────────
   avatarSection: {
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 40,
+    marginBottom: 28,
   },
-  avatarRing: {
-    width: 100,
-    height: 100,
-    borderRadius: BorderRadius.circle,
-    padding: 3,
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  avatarCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: Colors.salmonLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
   },
-  avatarInner: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: Colors.bgCard,
-    borderRadius: BorderRadius.circle,
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: -4,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: Colors.salmon,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Colors.bgCard,
+    borderWidth: 3,
+    borderColor: Colors.bgWhite,
   },
   userName: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: Colors.charcoal,
     marginBottom: 4,
   },
   userPhone: {
     fontSize: 15,
-    color: Colors.textSecondary,
+    color: Colors.grayNeutral,
     fontWeight: '500',
+    marginBottom: 10,
   },
-
-  // ─── Info Card ────────────────────────────────────────
-  infoCard: {
-    borderRadius: BorderRadius.lg,
-    padding: 20,
-    marginBottom: 35,
+  userIdBadge: {
+    backgroundColor: Colors.bgLightGray,
+    borderRadius: BorderRadius.pill,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
     borderWidth: 1,
-    borderColor: Colors.borderSubtle,
-    overflow: 'hidden',
+    borderColor: Colors.borderLightGray,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.bgPrimarySubtle,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  infoText: {
-    flex: 1,
-  },
-  infoLabel: {
+  userIdText: {
     fontSize: 13,
-    color: Colors.textSecondary,
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 16,
-    color: Colors.textPrimary,
     fontWeight: '700',
+    color: Colors.charcoal,
     fontFamily: 'monospace',
   },
 
-  // ─── Settings ─────────────────────────────────────────
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 15,
+  // ─── Info Cards ────────────────────────────────────────
+  infoCardsSection: {
+    gap: 12,
+    marginBottom: 24,
   },
-  settingsList: {
-    backgroundColor: Colors.bgSurface,
+  infoCard: {
+    backgroundColor: Colors.bgLightGray,
     borderRadius: BorderRadius.lg,
-    paddingHorizontal: 20,
-    marginBottom: 40,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: Colors.salmon,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 15,
+    color: Colors.charcoal,
+    fontWeight: '600',
+  },
+
+  // ─── Settings List ────────────────────────────────────
+  settingsList: {
+    gap: 8,
+    marginBottom: 24,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderSubtle,
+    backgroundColor: Colors.bgWhite,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: Colors.borderLightGray,
+  },
+  settingIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
   },
   settingText: {
     flex: 1,
-    marginLeft: 15,
-    fontSize: 16,
-    color: Colors.textPrimary,
-    fontWeight: '500',
+    fontSize: 15,
+    color: Colors.charcoal,
+    fontWeight: '600',
   },
 
-  // ─── Logout ───────────────────────────────────────────
-  logoutButton: {
-    flexDirection: 'row',
+  // ─── Close Button ─────────────────────────────────────
+  closeButton: {
+    borderRadius: BorderRadius.pill,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.bgDangerSubtle,
-    paddingVertical: 16,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.borderDanger,
+    overflow: 'hidden',
   },
-  logoutText: {
-    color: Colors.textDanger,
+  closeButtonText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '700',
-    marginLeft: 10,
   },
 });
