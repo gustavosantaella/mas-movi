@@ -184,7 +184,7 @@ export default function AIRouteScreen() {
             colors={[Gradients.primary[0], Gradients.primary[1]] as [string, string]}
             style={localStyles.fabGradient}
           >
-            <MaterialCommunityIcons name="robot-outline" size={26} color="#fff" />
+            <MaterialCommunityIcons name="robot" size={26} color="#fff" />
           </LinearGradient>
         </TouchableOpacity>
       )}

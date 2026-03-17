@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Animated, Pressable, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
@@ -10,10 +10,49 @@ import { profileStyles as styles } from '@/features/profile/styles';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const sheetTranslateY = useRef(new Animated.Value(300)).current;
+
+  useEffect(() => {
+    // Animate backdrop fade-in and sheet slide-up on mount
+    Animated.parallel([
+      Animated.timing(backdropOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.spring(sheetTranslateY, {
+        toValue: 0,
+        damping: 25,
+        stiffness: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleClose = () => {
+    router.back();
+  };
 
   return (
     <View style={styles.overlay}>
-      <View style={styles.sheet}>
+      {/* Animated backdrop — fades in independently */}
+      <Animated.View
+        style={[
+          styles.backdrop,
+          { opacity: backdropOpacity },
+        ]}
+      >
+        <Pressable style={{ flex: 1 }} onPress={handleClose} />
+      </Animated.View>
+
+      {/* Animated sheet — slides up on mount */}
+      <Animated.View
+        style={[
+          styles.sheet,
+          { transform: [{ translateY: sheetTranslateY }] },
+        ]}
+      >
         {/* Handle bar */}
         <View style={styles.handle} />
 
@@ -40,7 +79,7 @@ export default function ProfileScreen() {
             {/* Close button */}
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={() => router.back()}
+              onPress={handleClose}
               activeOpacity={0.85}
             >
               <LinearGradient
@@ -60,7 +99,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </View>
+      </Animated.View>
     </View>
   );
 }

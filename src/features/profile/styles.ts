@@ -6,8 +6,11 @@ export const profileStyles = StyleSheet.create({
   // ─── Bottom Sheet Container ────────────────────────────
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   sheet: {
     backgroundColor: Colors.bgWhite,

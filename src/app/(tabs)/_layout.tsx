@@ -87,7 +87,7 @@ function TabsContent() {
                 options={{
                     title: 'IA',
                     tabBarIcon: ({ color, focused }) => (
-                        <MaterialCommunityIcons name={focused ? 'robot' : 'robot-outline'} size={24} color={color} />
+                        <MaterialCommunityIcons name={focused ? 'robot' : 'robot'} size={24} color={color} />
                     ),
                 }}
             />
