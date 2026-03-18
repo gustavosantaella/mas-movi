@@ -47,7 +47,7 @@ export default function LoginScreen() {
           {/* ─── Logo ──────────────────────────────────── */}
           <View style={styles.logoContainer}>
             <Image
-              source={require('../../../assets/images/movimas-logo.png')}
+              source={require('../../../assets/images/guayaba-logo.png')}
               style={styles.logo}
             />
           </View>
