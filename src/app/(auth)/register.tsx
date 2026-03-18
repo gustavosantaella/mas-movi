@@ -1,9 +1,8 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  Image,
   TouchableOpacity,
   Animated,
   Dimensions,
@@ -17,6 +16,7 @@ import { RegisterStepper } from '@/features/auth/components/RegisterStepper';
 import { StepRole } from '@/features/auth/components/StepRole';
 import { StepIdentity } from '@/features/auth/components/StepIdentity';
 import { StepCredentials } from '@/features/auth/components/StepCredentials';
+import { SuccessOverlay } from '@/features/auth/components/SuccessOverlay';
 
 const TOTAL_STEPS = 3;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -27,6 +27,28 @@ export default function RegisterScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+
+  // Logo animation
+  const logoScale = useRef(new Animated.Value(0.7)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(logoScale, {
+        toValue: 1,
+        friction: 4,
+        tension: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Step 0 — Role
   const [role, setRole] = useState<'conductor' | 'pasajero' | null>(null);
@@ -46,7 +68,6 @@ export default function RegisterScreen() {
       const exitTo = direction === 'forward' ? -SCREEN_WIDTH * 0.3 : SCREEN_WIDTH * 0.3;
       const enterFrom = direction === 'forward' ? SCREEN_WIDTH * 0.3 : -SCREEN_WIDTH * 0.3;
 
-      // Slide out + fade out
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: exitTo,
@@ -62,7 +83,6 @@ export default function RegisterScreen() {
         setCurrentStep(newStep);
         slideAnim.setValue(enterFrom);
 
-        // Slide in + fade in
         Animated.parallel([
           Animated.timing(slideAnim, {
             toValue: 0,
@@ -95,9 +115,13 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = () => {
+    setRegisterLoading(true);
     // TODO: integrate with auth service
     console.log('Register', { role, documentUri, selfieUri, email, password, acceptedTerms });
-    router.replace('/(auth)/login');
+    setTimeout(() => {
+      setRegisterLoading(false);
+      setShowSuccess(true);
+    }, 1500);
   };
 
   const renderStep = () => {
@@ -126,6 +150,7 @@ export default function RegisterScreen() {
             onConfirmPasswordChange={setConfirmPassword}
             onToggleTerms={() => setAcceptedTerms((v) => !v)}
             onRegister={handleRegister}
+            loading={registerLoading}
           />
         );
       default:
@@ -135,6 +160,13 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
+      {/* ─── Success overlay ───────────────────────── */}
+      <SuccessOverlay
+        visible={showSuccess}
+        message="¡Cuenta creada con éxito!"
+        onFinish={() => router.replace('/(auth)/login')}
+      />
+
       {/* ─── Top bar: back + stepper ──────────────── */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={goBack} style={styles.backButton} activeOpacity={0.7}>
@@ -143,15 +175,17 @@ export default function RegisterScreen() {
         <View style={styles.stepperWrapper}>
           <RegisterStepper totalSteps={TOTAL_STEPS} currentStep={currentStep} />
         </View>
-        {/* Spacer for centering */}
         <View style={styles.backButton} />
       </View>
 
-      {/* ─── Logo ─────────────────────────────────── */}
+      {/* ─── Logo (animated) ──────────────────────── */}
       <View style={styles.logoContainer}>
-        <Image
+        <Animated.Image
           source={require('../../../assets/images/guayaba-logo.png')}
-          style={styles.logo}
+          style={[
+            styles.logo,
+            { transform: [{ scale: logoScale }], opacity: logoOpacity },
+          ]}
         />
       </View>
 

@@ -1,36 +1,89 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
-  Image,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Colors, Gradients } from '@/theme';
-import { GradientButton } from '@/components/ui';
+import { GradientButton, AppInput } from '@/components/ui';
 import { authStyles as styles } from '@/features/auth/styles';
-import { InputLabel } from '@/features/auth/components/InputLabel';
 
 export default function LoginScreen() {
   const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Biometric
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+
+  // Logo animation
+  const logoScale = useRef(new Animated.Value(0.7)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(logoScale, {
+        toValue: 1,
+        friction: 4,
+        tension: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    checkBiometric();
+  }, []);
+
+  const checkBiometric = async () => {
+    try {
+      const LocalAuth = require('expo-local-authentication');
+      const compatible = await LocalAuth.hasHardwareAsync();
+      const enrolled = await LocalAuth.isEnrolledAsync();
+      setBiometricAvailable(compatible && enrolled);
+    } catch {
+      // Not available
+    }
+  };
+
+  const handleBiometric = async () => {
+    try {
+      const LocalAuth = require('expo-local-authentication');
+      const result = await LocalAuth.authenticateAsync({
+        promptMessage: 'Autentícate para acceder a Guayaba',
+        fallbackLabel: 'Usar contraseña',
+      });
+      if (result.success) {
+        router.replace('/(tabs)');
+      }
+    } catch {
+      // Not available
+    }
+  };
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isValidPassword =
     password.length >= 8 && /[A-Z]/.test(password) && /[^A-Za-z0-9]/.test(password);
   const canSubmit = isValidEmail && isValidPassword;
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    setLoading(true);
     // TODO: integrate with auth service
     console.log('Login', { email, password });
+    setTimeout(() => {
+      setLoading(false);
+      router.replace('/(tabs)');
+    }, 1500);
   };
 
   const goToRegister = () => {
@@ -44,11 +97,14 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ─── Logo ──────────────────────────────────── */}
+          {/* ─── Logo (animated) ─────────────────────── */}
           <View style={styles.logoContainer}>
-            <Image
+            <Animated.Image
               source={require('../../../assets/images/guayaba-logo.png')}
-              style={styles.logo}
+              style={[
+                styles.logo,
+                { transform: [{ scale: logoScale }], opacity: logoOpacity },
+              ]}
             />
           </View>
 
@@ -59,76 +115,26 @@ export default function LoginScreen() {
           </Text>
 
           {/* ─── Email ─────────────────────────────────── */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Correo electrónico</Text>
-            <View
-              style={[
-                styles.inputWrapper,
-                focusedField === 'email' && styles.inputWrapperFocused,
-              ]}
-            >
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color={focusedField === 'email' ? Colors.salmon : Colors.grayNeutral}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="tu@correo.com"
-                placeholderTextColor={Colors.grayNeutral}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                value={email}
-                onChangeText={setEmail}
-                onFocus={() => setFocusedField('email')}
-                onBlur={() => setFocusedField(null)}
-              />
-            </View>
-          </View>
+          <AppInput
+            type="email"
+            label="Correo electrónico"
+            icon="mail-outline"
+            placeholder="tu@correo.com"
+            value={email}
+            onChangeText={setEmail}
+          />
 
           {/* ─── Password ──────────────────────────────── */}
-          <View style={styles.inputGroup}>
-            <InputLabel
-              label="Contraseña"
-              helpDescription="La contraseña debe contener mínimo 8 caracteres, al menos 1 letra mayúscula y 1 símbolo especial (por ejemplo: @, #, $)."
-            />
-            <View
-              style={[
-                styles.inputWrapper,
-                focusedField === 'password' && styles.inputWrapperFocused,
-              ]}
-            >
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color={focusedField === 'password' ? Colors.salmon : Colors.grayNeutral}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor={Colors.grayNeutral}
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-                onFocus={() => setFocusedField('password')}
-                onBlur={() => setFocusedField(null)}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword((v) => !v)}
-              >
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color={Colors.grayNeutral}
-                />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.helpText}>Mínimo 8 caracteres, 1 mayúscula y 1 símbolo</Text>
-          </View>
+          <AppInput
+            type="password"
+            label="Contraseña"
+            icon="lock-closed-outline"
+            placeholder="••••••••"
+            value={password}
+            onChangeText={setPassword}
+            helpDescription="La contraseña debe contener mínimo 8 caracteres, al menos 1 letra mayúscula y 1 símbolo especial (por ejemplo: @, #, $)."
+            showPasswordValidator
+          />
 
           {/* ─── Button ────────────────────────────────── */}
           <View style={styles.buttonContainer}>
@@ -136,9 +142,22 @@ export default function LoginScreen() {
               label="Iniciar Sesión"
               onPress={handleLogin}
               disabled={!canSubmit}
+              loading={loading}
               colors={Gradients.salmonButton as unknown as [string, string, ...string[]]}
             />
           </View>
+
+          {/* ─── Biometric ─────────────────────────────── */}
+          {biometricAvailable && (
+            <TouchableOpacity
+              style={styles.biometricButton}
+              onPress={handleBiometric}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="finger-print" size={28} color={Colors.salmon} />
+              <Text style={styles.biometricText}>Acceder con biometría</Text>
+            </TouchableOpacity>
+          )}
 
           {/* ─── Footer ────────────────────────────────── */}
           <View style={styles.footerContainer}>

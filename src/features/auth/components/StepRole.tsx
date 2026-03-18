@@ -22,7 +22,7 @@ const ROLES = [
   {
     id: 'pasajero' as const,
     label: 'Soy Pasajero',
-    description: 'Solicita viajes de forma fácil',
+    description: 'Paga viajes de forma fácil',
     icon: 'person-outline' as const,
     iconColor: '#8B5CF6',
     iconBg: '#EDE9FE',

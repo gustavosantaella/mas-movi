@@ -144,4 +144,19 @@ export const authStyles = StyleSheet.create({
     fontWeight: '600',
     textDecorationLine: 'underline',
   },
+
+  /* ─── Biometric ─────────────────────────────────── */
+  biometricButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: Spacing.lg,
+    paddingVertical: Spacing.base,
+  },
+  biometricText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.salmon,
+  },
 });
