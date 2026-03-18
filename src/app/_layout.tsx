@@ -24,6 +24,7 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: '#FFFFFF' },
         }}
       >
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{
           presentation: 'transparentModal',

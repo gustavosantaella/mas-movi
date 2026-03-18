@@ -13,6 +13,8 @@ type GradientButtonProps = PropsWithChildren<{
   colors?: readonly [string, string, ...string[]];
   /** Additional style for the outer container */
   style?: ViewStyle;
+  /** Whether the button is disabled */
+  disabled?: boolean;
 }>;
 
 export function GradientButton({
@@ -20,9 +22,10 @@ export function GradientButton({
   onPress,
   colors,
   style,
+  disabled = false,
 }: GradientButtonProps) {
   return (
-    <TouchableOpacity style={[styles.shadow, style]} activeOpacity={0.9} onPress={onPress}>
+    <TouchableOpacity style={[styles.shadow, style, disabled && { opacity: 0.5 }]} activeOpacity={0.9} onPress={onPress} disabled={disabled}>
       <LinearGradient
         colors={colors ?? (Gradients.primary as unknown as [string, string, ...string[]])}
         style={styles.gradient}
