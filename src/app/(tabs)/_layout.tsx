@@ -61,6 +61,7 @@ function TabsContent() {
                 name="qr-scanner"
                 options={{
                     title: 'IA',
+                    tabBarStyle: { display: 'none' },
                     tabBarIcon: ({ color }) => (
                         <View style={{
                             width: 56,
