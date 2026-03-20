@@ -23,6 +23,13 @@ export const Colors = {
   grayNeutral: '#6B7280',
   successGreen: '#10B981',
 
+  // ─── Driver / Teal Palette ────────────────────────────
+  teal: '#0D9488',
+  tealLight: '#2DD4BF',
+  tealSoft: '#99F6E4',
+  tealDark: '#0F766E',
+  tealBg: '#F0FDFA',
+
   // ─── Backgrounds ─────────────────────────────────────
   bgDark: '#0F2027',
   bgDarkMid: '#203A43',
@@ -86,4 +93,6 @@ export const Gradients = {
   surface: ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)'] as const,
   salmonCard: ['#FF7B5F', '#FF9B85', '#FFB5A3'] as const,
   salmonButton: ['#FF7B5F', '#FF6B4A'] as const,
+  tealCard: ['#0D9488', '#2DD4BF', '#99F6E4'] as const,
+  tealButton: ['#0D9488', '#0F766E'] as const,
 } as const;

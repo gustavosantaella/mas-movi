@@ -27,6 +27,7 @@ export default function RootLayout() {
       >
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(driver-tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{
           presentation: 'transparentModal',
           headerShown: false,
