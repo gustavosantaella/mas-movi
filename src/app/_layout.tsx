@@ -39,6 +39,18 @@ export default function RootLayout() {
           headerShown: false,
           gestureEnabled: true,
         }} />
+        <Stack.Screen name="driver-trips" options={{
+          headerShown: false,
+          gestureEnabled: true,
+        }} />
+        <Stack.Screen name="driver-earnings" options={{
+          headerShown: false,
+          gestureEnabled: true,
+        }} />
+        <Stack.Screen name="driver-vehicle" options={{
+          headerShown: false,
+          gestureEnabled: true,
+        }} />
       </Stack>
     </ThemeProvider>
   );
