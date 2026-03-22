@@ -5,12 +5,12 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  StyleSheet,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Colors } from '@/theme';
+import { profileStyles as styles } from '@/features/profile/styles';
 import { StepIdentity } from '@/features/auth/components/StepIdentity';
 import { verifyIdentity } from '@/services/authService';
 import { confirmEntity } from '@/services/userService';
@@ -33,7 +33,6 @@ export default function VerifyEntityScreen() {
     try {
       const result = await verifyIdentity(selfieUri, documentUri);
       if (result.data?.facesMatch) {
-        // Save OCR-extracted data and set entityConfirmed = true
         if (token) {
           const doc = result.data.documentData;
           await confirmEntity(token, {
@@ -44,16 +43,13 @@ export default function VerifyEntityScreen() {
             sex: doc?.sex,
           });
         }
-
         Alert.alert(
           'Verificación exitosa',
           'Tu identidad ha sido verificada correctamente.',
           [{ text: 'OK', onPress: () => router.back() }],
         );
       } else {
-        setError(
-          'No se pudo verificar tu identidad. Asegúrate de que la foto del documento y la selfie sean claras.',
-        );
+        setError('No se pudo verificar tu identidad. Asegúrate de que la foto del documento y la selfie sean claras.');
       }
     } catch (err: any) {
       setError(err.message || 'Error durante la verificación.');
@@ -63,63 +59,32 @@ export default function VerifyEntityScreen() {
   };
 
   return (
-    <View style={s.container}>
-      {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={s.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={Colors.charcoal} />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Verificar identidad</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <View style={{ flex: 1, backgroundColor: Colors.bgWhite }}>
+      <View style={styles.handle} />
 
-      <ScrollView
-        contentContainerStyle={s.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <StepIdentity
-          documentUri={documentUri}
-          selfieUri={selfieUri}
-          onDocumentPicked={setDocumentUri}
-          onSelfiePicked={setSelfieUri}
-          onNext={handleVerify}
-          loading={loading}
-          error={error}
-        />
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <View style={styles.content}>
+          {/* Header */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+            <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={{ marginRight: 14 }}>
+              <Ionicons name="arrow-back" size={22} color={Colors.charcoal} />
+            </TouchableOpacity>
+            <Text style={{ fontSize: 20, fontWeight: '800', color: Colors.charcoal }}>
+              Verificar identidad
+            </Text>
+          </View>
+
+          <StepIdentity
+            documentUri={documentUri}
+            selfieUri={selfieUri}
+            onDocumentPicked={setDocumentUri}
+            onSelfiePicked={setSelfieUri}
+            onNext={handleVerify}
+            loading={loading}
+            error={error}
+          />
+        </View>
       </ScrollView>
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.bgWhite,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: Colors.bgLightGray,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.charcoal,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-});

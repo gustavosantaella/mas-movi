@@ -44,6 +44,21 @@ function RootNavigator() {
         contentStyle: { backgroundColor: 'transparent' },
         animation: 'slide_from_bottom',
       }} />
+      <Stack.Screen name="personal-info" options={{
+        headerShown: false,
+        gestureEnabled: false,
+        animation: 'slide_from_bottom',
+      }} />
+      <Stack.Screen name="security" options={{
+        headerShown: false,
+        gestureEnabled: false,
+        animation: 'slide_from_bottom',
+      }} />
+      <Stack.Screen name="verify-entity" options={{
+        headerShown: false,
+        gestureEnabled: false,
+        animation: 'slide_from_bottom',
+      }} />
       <Stack.Screen name="trip-history" options={{
         headerShown: false,
         gestureEnabled: true,

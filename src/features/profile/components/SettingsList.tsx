@@ -55,7 +55,7 @@ export function SettingsList({ user }: SettingsListProps) {
           activeOpacity={0.75}
           onPress={() => {
             if (item.route.startsWith('/profile/')) return; // Not implemented yet
-            router.push(item.route as any);
+            router.replace(item.route as any);
           }}
         >
           <View style={[styles.settingIcon, { backgroundColor: item.iconBg }]}>
