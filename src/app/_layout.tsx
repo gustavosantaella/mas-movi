@@ -21,17 +21,14 @@ function RootNavigator() {
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
-      // Route by role
       if (isDriver) {
         router.replace('/(driver-tabs)' as any);
       } else {
         router.replace('/(tabs)');
       }
     } else if (isAuthenticated && isDriver && inPassengerTabs) {
-      // Driver on passenger tabs → redirect
       router.replace('/(driver-tabs)' as any);
     } else if (isAuthenticated && !isDriver && inDriverTabs) {
-      // Passenger on driver tabs → redirect
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, isLoading, isDriver, segments]);
@@ -46,42 +43,51 @@ function RootNavigator() {
         contentStyle: { backgroundColor: '#FFFFFF' },
       }}
     >
+      {/* ─── Auth ─────────────────── */}
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+
+      {/* ─── Tab navigators ────────── */}
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(driver-tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="profile" options={{
+
+      {/* ─── Passenger screens ─────── */}
+      <Stack.Screen name="(passenger)/pay-fare" options={{
+        headerShown: false,
+        gestureEnabled: true,
+        animation: 'slide_from_bottom',
+      }} />
+
+      {/* ─── Driver screens ──────── */}
+      <Stack.Screen name="(driver)/generate-qr" options={{
+        headerShown: false,
+        gestureEnabled: true,
+        animation: 'slide_from_bottom',
+      }} />
+
+      {/* ─── Shared screens ──────── */}
+      <Stack.Screen name="(shared)/profile" options={{
         presentation: 'transparentModal',
         headerShown: false,
         gestureEnabled: true,
         contentStyle: { backgroundColor: 'transparent' },
         animation: 'slide_from_bottom',
       }} />
-      <Stack.Screen name="personal-info" options={{
+      <Stack.Screen name="(shared)/personal-info" options={{
         headerShown: false,
         gestureEnabled: true,
         animation: 'slide_from_bottom',
       }} />
-      <Stack.Screen name="security" options={{
+      <Stack.Screen name="(shared)/security" options={{
         headerShown: false,
         gestureEnabled: true,
         animation: 'slide_from_bottom',
       }} />
-      <Stack.Screen name="verify-entity" options={{
+      <Stack.Screen name="(shared)/verify-entity" options={{
         headerShown: false,
         gestureEnabled: true,
         animation: 'slide_from_bottom',
       }} />
-      <Stack.Screen name="pay-fare" options={{
-        headerShown: false,
-        gestureEnabled: true,
-        animation: 'slide_from_bottom',
-      }} />
-      <Stack.Screen name="generate-qr" options={{
-        headerShown: false,
-        gestureEnabled: true,
-        animation: 'slide_from_bottom',
-      }} />
-      <Stack.Screen name="trip-history" options={{
+      <Stack.Screen name="(shared)/trip-history" options={{
         headerShown: false,
         gestureEnabled: true,
       }} />

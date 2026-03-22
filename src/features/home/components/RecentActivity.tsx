@@ -68,7 +68,7 @@ export function RecentActivity() {
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Actividad Reciente</Text>
         <TouchableOpacity
-          onPress={() => router.push('/trip-history')}
+          onPress={() => router.push('/(shared)/trip-history' as any)}
           activeOpacity={0.7}
         >
           <Text style={styles.sectionLink}>Ver todo {'>'}</Text>

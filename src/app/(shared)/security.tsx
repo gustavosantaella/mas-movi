@@ -23,7 +23,7 @@ type SecurityItem = {
 
 const ITEMS: SecurityItem[] = [
   { icon: 'mail-outline', label: 'Correo verificado', statusKey: 'emailConfirmed' },
-  { icon: 'finger-print-outline', label: 'Verificar identidad', route: '/verify-entity', statusKey: 'entityConfirmed' },
+  { icon: 'finger-print-outline', label: 'Verificar identidad', route: '/(shared)/verify-entity', statusKey: 'entityConfirmed' },
   { icon: 'lock-closed-outline', label: 'Cambiar contraseña', route: '/(auth)/forgot-password' },
 ];
 

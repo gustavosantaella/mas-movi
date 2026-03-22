@@ -26,7 +26,7 @@ export function QuickActions() {
       <TouchableOpacity
         style={styles.quickActionCard}
         activeOpacity={0.8}
-        onPress={() => router.push('/trip-history')}
+        onPress={() => router.push('/(shared)/trip-history' as any)}
       >
         <View style={[styles.quickActionIcon, { backgroundColor: '#D1FAE5' }]}>
           <MaterialCommunityIcons name="trending-up" size={26} color="#10B981" />

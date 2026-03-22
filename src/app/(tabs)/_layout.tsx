@@ -67,7 +67,7 @@ function TabsContent() {
                 listeners={{
                     tabPress: (e) => {
                         e.preventDefault();
-                        router.push('/pay-fare' as any);
+                        router.push('/(passenger)/pay-fare' as any);
                     },
                 }}
                 options={{

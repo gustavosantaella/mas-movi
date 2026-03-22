@@ -67,7 +67,7 @@ function DriverTabsContent() {
                 listeners={{
                     tabPress: (e) => {
                         e.preventDefault();
-                        router.push('/generate-qr' as any);
+                        router.push('/(driver)/generate-qr' as any);
                     },
                 }}
                 options={{

@@ -20,7 +20,7 @@ const SETTINGS: SettingItem[] = [
   {
     icon: 'person-outline',
     label: 'Información Personal',
-    route: '/personal-info',
+    route: '/(shared)/personal-info',
     iconBg: Colors.peach,
     iconColor: Colors.salmon,
     requiresOnline: true,
@@ -28,7 +28,7 @@ const SETTINGS: SettingItem[] = [
   {
     icon: 'shield-checkmark-outline',
     label: 'Seguridad',
-    route: '/security',
+    route: '/(shared)/security',
     iconBg: `${Colors.salmonLight}30`,
     iconColor: Colors.salmonLight,
     requiresOnline: true,

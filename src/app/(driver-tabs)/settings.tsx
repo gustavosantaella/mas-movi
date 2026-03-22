@@ -16,7 +16,7 @@ export default function DriverSettingsScreen() {
       <TouchableOpacity
         style={s.item}
         activeOpacity={0.75}
-        onPress={() => router.push('/profile' as any)}
+        onPress={() => router.push('/(shared)/profile' as any)}
       >
         <View style={[s.icon, { backgroundColor: `${Colors.salmon}15` }]}>
           <Ionicons name="person-outline" size={20} color={Colors.salmon} />
@@ -28,7 +28,7 @@ export default function DriverSettingsScreen() {
       <TouchableOpacity
         style={s.item}
         activeOpacity={0.75}
-        onPress={() => router.push('/personal-info' as any)}
+        onPress={() => router.push('/(shared)/personal-info' as any)}
       >
         <View style={[s.icon, { backgroundColor: Colors.peach }]}>
           <Ionicons name="information-circle-outline" size={20} color={Colors.salmon} />
@@ -40,7 +40,7 @@ export default function DriverSettingsScreen() {
       <TouchableOpacity
         style={s.item}
         activeOpacity={0.75}
-        onPress={() => router.push('/security' as any)}
+        onPress={() => router.push('/(shared)/security' as any)}
       >
         <View style={[s.icon, { backgroundColor: `${Colors.salmonLight}30` }]}>
           <Ionicons name="shield-checkmark-outline" size={20} color={Colors.salmonLight} />

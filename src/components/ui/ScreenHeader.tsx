@@ -17,7 +17,7 @@ export function ScreenHeader() {
       <View style={styles.headerLeft}>
         <TouchableOpacity
           style={styles.profileAvatar}
-          onPress={() => router.push('/profile')}
+          onPress={() => router.push('/(shared)/profile' as any)}
           activeOpacity={0.8}
         >
           <FontAwesome name="user" size={18} color="#fff" />
