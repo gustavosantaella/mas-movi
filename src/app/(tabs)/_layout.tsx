@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Animated, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -7,6 +7,7 @@ import { TabBarVisibilityProvider, useTabBarVisibility } from '@/hooks/useTabBar
 
 function TabsContent() {
     const { translateY } = useTabBarVisibility();
+    const router = useRouter();
 
     const defaultTabStyle = {
         position: 'absolute' as const,
@@ -59,10 +60,15 @@ function TabsContent() {
             />
             <Tabs.Screen
                 name="qr-scanner"
+                listeners={{
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        router.push('/pay-fare' as any);
+                    },
+                }}
                 options={{
-                    title: 'IA',
-                    tabBarStyle: { display: 'none' },
-                    tabBarIcon: ({ color }) => (
+                    title: '',
+                    tabBarIcon: () => (
                         <View style={{
                             width: 56,
                             height: 56,

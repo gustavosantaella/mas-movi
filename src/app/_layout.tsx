@@ -59,6 +59,11 @@ function RootNavigator() {
         gestureEnabled: true,
         animation: 'slide_from_bottom',
       }} />
+      <Stack.Screen name="pay-fare" options={{
+        headerShown: false,
+        gestureEnabled: true,
+        animation: 'slide_from_bottom',
+      }} />
       <Stack.Screen name="trip-history" options={{
         headerShown: false,
         gestureEnabled: true,
