@@ -7,7 +7,7 @@ import * as Location from 'expo-location';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
 function RootNavigator() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isDriver } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -15,17 +15,28 @@ function RootNavigator() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inDriverTabs = segments[0] === '(driver-tabs)';
+    const inPassengerTabs = segments[0] === '(tabs)';
 
     if (!isAuthenticated && !inAuthGroup) {
-      // Not logged in and trying to access protected route → redirect to login
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
-      // Logged in but still on auth screen → redirect to main app
+      // Route by role
+      if (isDriver) {
+        router.replace('/(driver-tabs)' as any);
+      } else {
+        router.replace('/(tabs)');
+      }
+    } else if (isAuthenticated && isDriver && inPassengerTabs) {
+      // Driver on passenger tabs → redirect
+      router.replace('/(driver-tabs)' as any);
+    } else if (isAuthenticated && !isDriver && inDriverTabs) {
+      // Passenger on driver tabs → redirect
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isLoading, segments]);
+  }, [isAuthenticated, isLoading, isDriver, segments]);
 
-  if (isLoading) return null; // Loading splash
+  if (isLoading) return null;
 
   return (
     <Stack
@@ -37,6 +48,7 @@ function RootNavigator() {
     >
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(driver-tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="profile" options={{
         presentation: 'transparentModal',
         headerShown: false,
@@ -60,6 +72,11 @@ function RootNavigator() {
         animation: 'slide_from_bottom',
       }} />
       <Stack.Screen name="pay-fare" options={{
+        headerShown: false,
+        gestureEnabled: true,
+        animation: 'slide_from_bottom',
+      }} />
+      <Stack.Screen name="generate-qr" options={{
         headerShown: false,
         gestureEnabled: true,
         animation: 'slide_from_bottom',

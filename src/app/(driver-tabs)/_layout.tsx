@@ -1,12 +1,12 @@
 import { Tabs, useRouter } from 'expo-router';
-import { Animated, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '@/theme';
 import { TabBarVisibilityProvider, useTabBarVisibility } from '@/hooks/useTabBarVisibility';
 
-function TabsContent() {
+function DriverTabsContent() {
     const { translateY } = useTabBarVisibility();
     const router = useRouter();
     const insets = useSafeAreaInsets();
@@ -54,20 +54,20 @@ function TabsContent() {
                 }}
             />
             <Tabs.Screen
-                name="payment"
+                name="activity"
                 options={{
-                    title: 'Pagos',
+                    title: 'Actividad',
                     tabBarIcon: ({ color, focused }) => (
-                        <MaterialCommunityIcons name={focused ? 'wallet' : 'wallet-outline'} size={24} color={color} />
+                        <Ionicons name={focused ? 'time' : 'time-outline'} size={24} color={color} />
                     ),
                 }}
             />
             <Tabs.Screen
-                name="qr-scanner"
+                name="qr-placeholder"
                 listeners={{
                     tabPress: (e) => {
                         e.preventDefault();
-                        router.push('/pay-fare' as any);
+                        router.push('/generate-qr' as any);
                     },
                 }}
                 options={{
@@ -94,20 +94,20 @@ function TabsContent() {
                 }}
             />
             <Tabs.Screen
-                name="ai-route"
+                name="payments"
                 options={{
-                    title: 'IA',
+                    title: 'Pagos',
                     tabBarIcon: ({ color, focused }) => (
-                        <MaterialCommunityIcons name={focused ? 'robot' : 'robot'} size={24} color={color} />
+                        <MaterialCommunityIcons name={focused ? 'wallet' : 'wallet-outline'} size={24} color={color} />
                     ),
                 }}
             />
             <Tabs.Screen
-                name="recompensas"
+                name="settings"
                 options={{
-                    title: 'Recompensas',
+                    title: 'Más',
                     tabBarIcon: ({ color, focused }) => (
-                        <MaterialCommunityIcons name={focused ? 'chart-line' : 'chart-line'} size={24} color={color} />
+                        <Ionicons name={focused ? 'settings' : 'settings-outline'} size={24} color={color} />
                     ),
                 }}
             />
@@ -115,11 +115,10 @@ function TabsContent() {
     );
 }
 
-export default function TabLayout() {
+export default function DriverTabLayout() {
     return (
         <TabBarVisibilityProvider>
-            <TabsContent />
+            <DriverTabsContent />
         </TabBarVisibilityProvider>
     );
 }
-

@@ -1,40 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { BlurView } from 'expo-blur';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { Colors } from '@/theme';
 import { NfcListener } from '@/components/ui';
+import { useNfcSupport } from '@/hooks/useNfcSupport';
+import { readNfcPayment, cancelNfc } from '@/services/nfcService';
 import { ScannerFrame } from '@/features/qr-scanner/components/ScannerFrame';
 import { ScannerControls } from '@/features/qr-scanner/components/ScannerControls';
 import { qrScannerStyles } from '@/features/qr-scanner/styles';
 
-type PaymentMode = 'select' | 'qr' | 'nfc';
+type PaymentMode = 'select' | 'qr' | 'nfc' | 'confirm';
 
-export default function QRScannerScreen() {
+interface ScannedPayment {
+  driverId: number;
+  fare: number;
+  ts: number;
+}
+
+export default function PayFareScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const [mode, setMode] = useState<PaymentMode>('select');
+  const { isSupported: nfcSupported } = useNfcSupport();
+  const [scannedData, setScannedData] = useState<ScannedPayment | null>(null);
+  const [paying, setPaying] = useState(false);
+  const hasScanned = useRef(false); // prevents multiple scans
 
   const handleBack = () => {
-    if (mode === 'qr' || mode === 'nfc') {
+    if (mode === 'confirm') {
+      hasScanned.current = false;
+      setScannedData(null);
+      setMode('qr');
+    } else if (mode === 'qr' || mode === 'nfc') {
+      hasScanned.current = false;
+      cancelNfc();
       setMode('select');
     } else {
       router.back();
     }
   };
 
-  const handleNfc = () => {
+  const handleNfc = async () => {
     setMode('nfc');
+    try {
+      const data = await readNfcPayment();
+      if (data) {
+        setScannedData(data);
+        setMode('confirm');
+      } else {
+        Alert.alert('No se detectó', 'No se encontró información de pago válida en la señal NFC.');
+        setMode('select');
+      }
+    } catch {
+      setMode('select');
+    }
   };
 
   const handleQr = () => {
@@ -46,6 +78,90 @@ export default function QRScannerScreen() {
       setMode('qr');
     }
   };
+
+  const handleBarcodeScan = (result: BarcodeScanningResult) => {
+    if (hasScanned.current) return;
+
+    try {
+      const data = JSON.parse(result.data) as ScannedPayment;
+      if (data.driverId && data.fare) {
+        hasScanned.current = true;
+        setScannedData(data);
+        setMode('confirm');
+      }
+    } catch {
+      // Not a valid payment QR — ignore
+    }
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!scannedData) return;
+    setPaying(true);
+
+    // Simulate payment processing
+    await new Promise((r) => setTimeout(r, 1500));
+
+    setPaying(false);
+    Alert.alert(
+      '✅ Pago exitoso',
+      `Pagaste Bs. ${scannedData.fare} al conductor #${scannedData.driverId}`,
+      [{ text: 'OK', onPress: () => router.back() }],
+    );
+  };
+
+  /* ─── Payment confirmation ───────────────── */
+  if (mode === 'confirm' && scannedData) {
+    return (
+      <SafeAreaView style={s.container}>
+        <View style={s.header}>
+          <TouchableOpacity onPress={handleBack} activeOpacity={0.7}>
+            <Ionicons name="arrow-back" size={22} color={Colors.charcoal} />
+          </TouchableOpacity>
+          <Text style={s.headerTitle}>Confirmar pago</Text>
+          <View style={{ width: 22 }} />
+        </View>
+
+        <View style={s.confirmSection}>
+          <View style={s.confirmCircle}>
+            <Ionicons name="checkmark-circle" size={64} color={Colors.successGreen} />
+          </View>
+          <Text style={s.confirmTitle}>QR escaneado</Text>
+
+          <View style={s.confirmCard}>
+            <View style={s.confirmRow}>
+              <Text style={s.confirmLabel}>Conductor</Text>
+              <Text style={s.confirmValue}>#{scannedData.driverId}</Text>
+            </View>
+            <View style={s.divider} />
+            <View style={s.confirmRow}>
+              <Text style={s.confirmLabel}>Monto</Text>
+              <Text style={s.confirmAmount}>Bs. {scannedData.fare}</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={s.payButton}
+            activeOpacity={0.85}
+            onPress={handleConfirmPayment}
+            disabled={paying}
+          >
+            {paying ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="wallet-outline" size={20} color="#fff" />
+                <Text style={s.payButtonText}>Pagar Bs. {scannedData.fare}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity style={s.cancelButton} onPress={handleBack} disabled={paying}>
+            <Text style={s.cancelButtonText}>Cancelar</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   /* ─── QR Scanner mode ────────────────────── */
   if (mode === 'qr') {
@@ -65,7 +181,12 @@ export default function QRScannerScreen() {
 
     return (
       <View style={qrScannerStyles.container}>
-        <CameraView style={qrScannerStyles.camera} facing="back">
+        <CameraView
+          style={qrScannerStyles.camera}
+          facing="back"
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+          onBarcodeScanned={handleBarcodeScan}
+        >
           {/* Back button */}
           <View style={{ position: 'absolute', top: insets.top + 10, left: 16, zIndex: 10 }}>
             <TouchableOpacity onPress={handleBack} activeOpacity={0.8}>
@@ -90,8 +211,8 @@ export default function QRScannerScreen() {
   /* ─── NFC listener mode ──────────────────── */
   if (mode === 'nfc') {
     return (
-      <View style={s.container}>
-        <View style={[s.header, { paddingTop: insets.top + 10 }]}>
+      <SafeAreaView style={s.container}>
+        <View style={s.header}>
           <TouchableOpacity onPress={handleBack} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={22} color={Colors.charcoal} />
           </TouchableOpacity>
@@ -99,15 +220,14 @@ export default function QRScannerScreen() {
           <View style={{ width: 22 }} />
         </View>
         <NfcListener />
-      </View>
+      </SafeAreaView>
     );
   }
 
   /* ─── Selection mode ─────────────────────── */
   return (
-    <View style={s.container}>
-      {/* Header */}
-      <View style={[s.header, { paddingTop: insets.top + 10 }]}>
+    <SafeAreaView style={s.container}>
+      <View style={s.header}>
         <TouchableOpacity onPress={handleBack} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color={Colors.charcoal} />
         </TouchableOpacity>
@@ -115,7 +235,6 @@ export default function QRScannerScreen() {
         <View style={{ width: 22 }} />
       </View>
 
-      {/* Illustration */}
       <View style={s.illustration}>
         <View style={s.illustrationCircle}>
           <MaterialCommunityIcons name="contactless-payment" size={56} color={Colors.salmon} />
@@ -124,7 +243,6 @@ export default function QRScannerScreen() {
         <Text style={s.description}>Escoge el método de pago para tu viaje</Text>
       </View>
 
-      {/* Options */}
       <View style={s.optionsContainer}>
         <TouchableOpacity style={s.optionCard} activeOpacity={0.8} onPress={handleQr}>
           <View style={[s.optionIcon, { backgroundColor: `${Colors.salmon}15` }]}>
@@ -137,20 +255,32 @@ export default function QRScannerScreen() {
           <Ionicons name="chevron-forward" size={20} color={Colors.grayNeutral} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.optionCard} activeOpacity={0.8} onPress={handleNfc}>
+        <TouchableOpacity
+          style={[s.optionCard, !nfcSupported && { opacity: 0.5 }]}
+          activeOpacity={nfcSupported ? 0.8 : 1}
+          onPress={() => { if (nfcSupported) handleNfc(); }}
+        >
           <View style={[s.optionIcon, { backgroundColor: `${Colors.successGreen}15` }]}>
             <MaterialCommunityIcons name="nfc" size={28} color={Colors.successGreen} />
           </View>
           <View style={s.optionText}>
             <Text style={s.optionTitle}>NFC</Text>
-            <Text style={s.optionDesc}>Más rápido</Text>
+            {nfcSupported ? (
+              <Text style={s.optionDesc}>Más rápido</Text>
+            ) : (
+              <Text style={[s.optionDesc, { color: '#92400E' }]}>No disponible en tu dispositivo</Text>
+            )}
           </View>
-          <View style={s.badge}>
-            <Text style={s.badgeText}>⚡ Rápido</Text>
-          </View>
+          {nfcSupported ? (
+            <View style={s.badge}>
+              <Text style={s.badgeText}>⚡ Rápido</Text>
+            </View>
+          ) : (
+            <Ionicons name="warning" size={18} color="#92400E" />
+          )}
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -249,5 +379,80 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
+  },
+  /* ─── Confirmation styles ────── */
+  confirmSection: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  confirmCircle: {
+    marginBottom: 16,
+  },
+  confirmTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.charcoal,
+    marginBottom: 24,
+  },
+  confirmCard: {
+    width: '100%',
+    backgroundColor: Colors.bgLightGray,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.borderLightGray,
+    marginBottom: 30,
+  },
+  confirmRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  confirmLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.grayNeutral,
+  },
+  confirmValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.charcoal,
+  },
+  confirmAmount: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.salmon,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.borderLightGray,
+    marginVertical: 4,
+  },
+  payButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.salmon,
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 14,
+    gap: 10,
+    marginBottom: 12,
+  },
+  payButtonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  cancelButton: {
+    paddingVertical: 12,
+  },
+  cancelButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.grayNeutral,
   },
 });
