@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { getProfile, setCachedProfile, clearCachedProfile } from '@/services/userService';
 
 const TOKEN_KEY = 'auth_token';
 
@@ -46,10 +47,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (newToken: string) => {
     await SecureStore.setItemAsync(TOKEN_KEY, newToken);
     setToken(newToken);
+
+    // Cache profile on login
+    try {
+      const res = await getProfile(newToken);
+      if (res.data) await setCachedProfile(res.data);
+    } catch {}
   };
 
   const signOut = async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await clearCachedProfile();
     setToken(null);
   };
 

@@ -13,6 +13,7 @@ type SettingItem = {
   route: string;
   iconBg: string;
   iconColor: string;
+  requiresOnline?: boolean;
 };
 
 const SETTINGS: SettingItem[] = [
@@ -22,6 +23,7 @@ const SETTINGS: SettingItem[] = [
     route: '/personal-info',
     iconBg: Colors.peach,
     iconColor: Colors.salmon,
+    requiresOnline: true,
   },
   {
     icon: 'shield-checkmark-outline',
@@ -29,6 +31,7 @@ const SETTINGS: SettingItem[] = [
     route: '/security',
     iconBg: `${Colors.salmonLight}30`,
     iconColor: Colors.salmonLight,
+    requiresOnline: true,
   },
   {
     icon: 'headset-outline',
@@ -41,30 +44,35 @@ const SETTINGS: SettingItem[] = [
 
 interface SettingsListProps {
   user?: UserProfile | null;
+  offline?: boolean;
 }
 
-export function SettingsList({ user }: SettingsListProps) {
+export function SettingsList({ user, offline = false }: SettingsListProps) {
   const router = useRouter();
 
   return (
     <View style={styles.settingsList}>
-      {SETTINGS.map((item) => (
-        <TouchableOpacity
-          key={item.label}
-          style={styles.settingItem}
-          activeOpacity={0.75}
-          onPress={() => {
-            if (item.route.startsWith('/profile/')) return; // Not implemented yet
-            router.replace(item.route as any);
-          }}
-        >
-          <View style={[styles.settingIcon, { backgroundColor: item.iconBg }]}>
-            <Ionicons name={item.icon} size={20} color={item.iconColor} />
-          </View>
-          <Text style={styles.settingText}>{item.label}</Text>
-          <Ionicons name="chevron-forward" size={20} color={Colors.grayNeutral} />
-        </TouchableOpacity>
-      ))}
+      {SETTINGS.map((item) => {
+        const disabled = (item.requiresOnline && offline) || item.route.startsWith('/profile/');
+
+        return (
+          <TouchableOpacity
+            key={item.label}
+            style={[styles.settingItem, disabled && { opacity: 0.4 }]}
+            activeOpacity={disabled ? 1 : 0.75}
+            onPress={() => {
+              if (disabled) return;
+              router.replace(item.route as any);
+            }}
+          >
+            <View style={[styles.settingIcon, { backgroundColor: item.iconBg }]}>
+              <Ionicons name={item.icon} size={20} color={item.iconColor} />
+            </View>
+            <Text style={styles.settingText}>{item.label}</Text>
+            <Ionicons name="chevron-forward" size={20} color={Colors.grayNeutral} />
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }

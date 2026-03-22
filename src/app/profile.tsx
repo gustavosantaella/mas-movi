@@ -15,19 +15,31 @@ import { AvatarSection } from '@/features/profile/components/AvatarSection';
 import { SettingsList } from '@/features/profile/components/SettingsList';
 import { profileStyles as styles } from '@/features/profile/styles';
 import { useAuth } from '@/contexts/AuthContext';
-import { getProfile, UserProfile } from '@/services/userService';
+import { getProfile, getCachedProfile, isOnline, UserProfile } from '@/services/userService';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { signOut, token } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [offline, setOffline] = useState(false);
 
   useEffect(() => {
-    if (token) {
-      getProfile(token)
-        .then((res) => { if (res.data) setUser(res.data); })
-        .catch(() => {});
-    }
+    (async () => {
+      // Show cached data instantly
+      const cached = await getCachedProfile();
+      if (cached) setUser(cached);
+
+      // Then try to fetch fresh data
+      const online = await isOnline();
+      setOffline(!online);
+
+      if (online && token) {
+        try {
+          const res = await getProfile(token);
+          if (res.data) setUser(res.data);
+        } catch {}
+      }
+    })();
   }, []);
 
   const handleDismiss = () => {
@@ -76,32 +88,34 @@ export default function ProfileScreen() {
           </View>
 
           {/* Settings navigation */}
-          <SettingsList user={user} />
+          <SettingsList user={user} offline={offline} />
 
-          {/* Logout button */}
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={handleLogout}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={Gradients.accent as unknown as [string, string, ...string[]]}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: 30,
-              }}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            />
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name="log-out-outline" size={20} color="#fff" />
-              <Text style={styles.closeButtonText}>Cerrar sesión</Text>
-            </View>
-          </TouchableOpacity>
+          {/* Logout button — hidden offline */}
+          {!offline && (
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={handleLogout}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={Gradients.accent as unknown as [string, string, ...string[]]}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 30,
+                }}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="log-out-outline" size={20} color="#fff" />
+                <Text style={styles.closeButtonText}>Cerrar sesión</Text>
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </BottomSheet>
