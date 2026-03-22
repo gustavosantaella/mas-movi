@@ -46,17 +46,17 @@ function RootNavigator() {
       }} />
       <Stack.Screen name="personal-info" options={{
         headerShown: false,
-        gestureEnabled: false,
+        gestureEnabled: true,
         animation: 'slide_from_bottom',
       }} />
       <Stack.Screen name="security" options={{
         headerShown: false,
-        gestureEnabled: false,
+        gestureEnabled: true,
         animation: 'slide_from_bottom',
       }} />
       <Stack.Screen name="verify-entity" options={{
         headerShown: false,
-        gestureEnabled: false,
+        gestureEnabled: true,
         animation: 'slide_from_bottom',
       }} />
       <Stack.Screen name="trip-history" options={{
