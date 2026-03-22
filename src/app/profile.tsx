@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -17,21 +17,25 @@ import { Colors, Gradients } from '@/theme';
 import { AvatarSection } from '@/features/profile/components/AvatarSection';
 import { SettingsList } from '@/features/profile/components/SettingsList';
 import { profileStyles as styles } from '@/features/profile/styles';
+import { useAuth } from '@/contexts/AuthContext';
+import { getProfile, UserProfile } from '@/services/userService';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const DISMISS_THRESHOLD = 120;
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { signOut, token } = useAuth();
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(300)).current;
+  const [user, setUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     // Animate backdrop fade-in and sheet slide-up on mount
     Animated.parallel([
       Animated.timing(backdropOpacity, {
         toValue: 1,
-        duration: 300,
+        duration: 200,
         useNativeDriver: true,
       }),
       Animated.spring(sheetTranslateY, {
@@ -41,6 +45,13 @@ export default function ProfileScreen() {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Fetch user profile
+    if (token) {
+      getProfile(token)
+        .then((res) => { if (res.data) setUser(res.data); })
+        .catch(() => { });
+    }
   }, []);
 
   const dismissSheet = (callback?: () => void) => {
@@ -66,9 +77,8 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    dismissSheet(() => {
-      // Navigate to login after the sheet animates out
-      router.replace('/(auth)/login');
+    dismissSheet(async () => {
+      await signOut();
     });
   };
 
@@ -138,22 +148,40 @@ export default function ProfileScreen() {
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
             {/* Avatar + Name + ID */}
-            <AvatarSection />
+            <AvatarSection user={user} />
 
             {/* Info cards */}
             <View style={styles.infoCardsSection}>
               <View style={styles.infoCard}>
                 <Text style={styles.infoLabel}>Email</Text>
-                <Text style={styles.infoValue}>maria.rodriguez@email.com</Text>
+                <Text style={styles.infoValue}>{user?.email ?? '—'}</Text>
               </View>
+              {user?.firstName ? (
+                <View style={styles.infoCard}>
+                  <Text style={styles.infoLabel}>Nombre</Text>
+                  <Text style={styles.infoValue}>
+                    {[user.firstName, user.lastName].filter(Boolean).join(' ')}
+                  </Text>
+                </View>
+              ) : null}
               <View style={styles.infoCard}>
                 <Text style={styles.infoLabel}>Miembro desde</Text>
-                <Text style={styles.infoValue}>Enero 2026</Text>
+                <Text style={styles.infoValue}>
+                  {user?.createdAt
+                    ? (() => {
+                        const d = new Date(user.createdAt).toLocaleDateString('es-VE', {
+                          month: 'long',
+                          year: 'numeric',
+                        });
+                        return d.charAt(0).toUpperCase() + d.slice(1);
+                      })()
+                    : '—'}
+                </Text>
               </View>
             </View>
 
             {/* Settings navigation */}
-            <SettingsList />
+            <SettingsList user={user} />
 
             {/* Logout button */}
             <TouchableOpacity

@@ -18,10 +18,11 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, token } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Biometric
@@ -68,7 +69,14 @@ export default function LoginScreen() {
         fallbackLabel: 'Usar contraseña',
       });
       if (result.success) {
-        router.replace('/(tabs)');
+        if (token) {
+          await signIn(token);
+        } else {
+          Alert.alert(
+            'Sesión no encontrada',
+            'Inicia sesión con tu correo y contraseña primero para activar el acceso biométrico.',
+          );
+        }
       }
     } catch {
       // Not available
@@ -83,7 +91,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const result = await loginApi({ email, password });
+      const result = await loginApi({ email, password, rememberPassword: rememberMe });
       if (result.data?.token) {
         await signIn(result.data.token);
       }
@@ -152,6 +160,29 @@ export default function LoginScreen() {
           >
             <Text style={{ fontSize: 13, fontWeight: '600', color: Colors.salmon }}>
               ¿Olvidaste tu contraseña?
+            </Text>
+          </TouchableOpacity>
+
+          {/* ─── Remember me ─────────────────────────────── */}
+          <TouchableOpacity
+            onPress={() => setRememberMe(!rememberMe)}
+            activeOpacity={0.7}
+            style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}
+          >
+            <View style={{
+              width: 20, height: 20, borderRadius: 4,
+              borderWidth: 1.5,
+              borderColor: rememberMe ? Colors.salmon : '#D1D5DB',
+              backgroundColor: rememberMe ? Colors.salmon : 'transparent',
+              justifyContent: 'center', alignItems: 'center',
+              marginRight: 8,
+            }}>
+              {rememberMe && (
+                <Ionicons name="checkmark" size={14} color="#fff" />
+              )}
+            </View>
+            <Text style={{ fontSize: 13, color: Colors.charcoal, fontWeight: '500' }}>
+              Recordarme
             </Text>
           </TouchableOpacity>
 

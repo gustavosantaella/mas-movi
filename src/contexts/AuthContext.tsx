@@ -1,8 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
-
-// NOTE: For production (EAS build), replace this with expo-secure-store
-// for encrypted token persistence between app restarts.
-// In Expo Go dev mode, the token lives in memory only.
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import * as SecureStore from 'expo-secure-store';
 
 const TOKEN_KEY = 'auth_token';
 
@@ -16,7 +13,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue>({
   token: null,
-  isLoading: false,
+  isLoading: true,
   isAuthenticated: false,
   signIn: async () => {},
   signOut: async () => {},
@@ -28,12 +25,31 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Restore token from SecureStore on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await SecureStore.getItemAsync(TOKEN_KEY);
+        if (stored) {
+          setToken(stored);
+        }
+      } catch {
+        // Ignore read errors
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, []);
 
   const signIn = async (newToken: string) => {
+    await SecureStore.setItemAsync(TOKEN_KEY, newToken);
     setToken(newToken);
   };
 
   const signOut = async () => {
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
     setToken(null);
   };
 
@@ -41,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         token,
-        isLoading: false,
+        isLoading,
         isAuthenticated: !!token,
         signIn,
         signOut,

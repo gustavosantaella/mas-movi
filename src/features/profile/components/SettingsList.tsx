@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 
 import { Colors } from '@/theme';
 import { profileStyles as styles } from '../styles';
+import { UserProfile } from '@/services/userService';
 
 type SettingItem = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -18,27 +19,31 @@ const SETTINGS: SettingItem[] = [
   {
     icon: 'person-outline',
     label: 'Información Personal',
-    route: '/profile/personal',
+    route: '/personal-info',
     iconBg: Colors.peach,
     iconColor: Colors.salmon,
   },
   {
     icon: 'shield-checkmark-outline',
     label: 'Seguridad',
-    route: '/profile/security',
-    iconBg: '#DBEAFE',
-    iconColor: '#3B82F6',
+    route: '/security',
+    iconBg: `${Colors.salmonLight}30`,
+    iconColor: Colors.salmonLight,
   },
   {
     icon: 'headset-outline',
     label: 'Soporte Técnico',
     route: '/profile/support',
-    iconBg: '#D1FAE5',
+    iconBg: `${Colors.successGreen}20`,
     iconColor: Colors.successGreen,
   },
 ];
 
-export function SettingsList() {
+interface SettingsListProps {
+  user?: UserProfile | null;
+}
+
+export function SettingsList({ user }: SettingsListProps) {
   const router = useRouter();
 
   return (
@@ -49,8 +54,8 @@ export function SettingsList() {
           style={styles.settingItem}
           activeOpacity={0.75}
           onPress={() => {
-            // Routes to be implemented later
-            // router.push(item.route);
+            if (item.route.startsWith('/profile/')) return; // Not implemented yet
+            router.push(item.route as any);
           }}
         >
           <View style={[styles.settingIcon, { backgroundColor: item.iconBg }]}>

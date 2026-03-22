@@ -66,6 +66,7 @@ export const profileStyles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: Colors.charcoal,
+    textAlign: 'center',
     marginBottom: 4,
   },
   userPhone: {
