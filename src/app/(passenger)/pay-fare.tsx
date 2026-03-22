@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
@@ -14,14 +13,13 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router';
 
 import { Colors } from '@/theme';
-import { NfcListener } from '@/components/ui';
-import { useNfcSupport } from '@/hooks/useNfcSupport';
-import { readNfcPayment, cancelNfc } from '@/services/nfcService';
+import { PaymentSuccessOverlay } from '@/components/ui';
+import { sendPayment } from '@/services/paymentSocket';
 import { ScannerFrame } from '@/features/qr-scanner/components/ScannerFrame';
 import { ScannerControls } from '@/features/qr-scanner/components/ScannerControls';
 import { qrScannerStyles } from '@/features/qr-scanner/styles';
 
-type PaymentMode = 'select' | 'qr' | 'nfc' | 'confirm';
+type PaymentMode = 'select' | 'qr' | 'confirm' | 'success';
 
 interface ScannedPayment {
   driverId: number;
@@ -34,38 +32,20 @@ export default function PayFareScreen() {
   const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const [mode, setMode] = useState<PaymentMode>('select');
-  const { isSupported: nfcSupported } = useNfcSupport();
   const [scannedData, setScannedData] = useState<ScannedPayment | null>(null);
   const [paying, setPaying] = useState(false);
-  const hasScanned = useRef(false); // prevents multiple scans
+  const hasScanned = useRef(false);
 
   const handleBack = () => {
     if (mode === 'confirm') {
       hasScanned.current = false;
       setScannedData(null);
       setMode('qr');
-    } else if (mode === 'qr' || mode === 'nfc') {
+    } else if (mode === 'qr') {
       hasScanned.current = false;
-      cancelNfc();
       setMode('select');
     } else {
       router.back();
-    }
-  };
-
-  const handleNfc = async () => {
-    setMode('nfc');
-    try {
-      const data = await readNfcPayment();
-      if (data) {
-        setScannedData(data);
-        setMode('confirm');
-      } else {
-        Alert.alert('No se detectó', 'No se encontró información de pago válida en la señal NFC.');
-        setMode('select');
-      }
-    } catch {
-      setMode('select');
     }
   };
 
@@ -101,13 +81,29 @@ export default function PayFareScreen() {
     // Simulate payment processing
     await new Promise((r) => setTimeout(r, 1500));
 
+    // Notify conductor via WebSocket (non-blocking)
+    sendPayment(scannedData.driverId, scannedData.fare);
+
     setPaying(false);
-    Alert.alert(
-      '✅ Pago exitoso',
-      `Pagaste Bs. ${scannedData.fare} al conductor #${scannedData.driverId}`,
-      [{ text: 'OK', onPress: () => router.back() }],
-    );
+    setMode('success');
   };
+
+  const handleSuccessDismiss = () => {
+    router.back();
+  };
+
+  /* ─── Success animation overlay ──────────── */
+  if (mode === 'success' && scannedData) {
+    return (
+      <SafeAreaView style={s.container}>
+        <PaymentSuccessOverlay
+          fare={scannedData.fare}
+          driverId={scannedData.driverId}
+          onDismiss={handleSuccessDismiss}
+        />
+      </SafeAreaView>
+    );
+  }
 
   /* ─── Payment confirmation ───────────────── */
   if (mode === 'confirm' && scannedData) {
@@ -208,22 +204,6 @@ export default function PayFareScreen() {
     );
   }
 
-  /* ─── NFC listener mode ──────────────────── */
-  if (mode === 'nfc') {
-    return (
-      <SafeAreaView style={s.container}>
-        <View style={s.header}>
-          <TouchableOpacity onPress={handleBack} activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={22} color={Colors.charcoal} />
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Pago NFC</Text>
-          <View style={{ width: 22 }} />
-        </View>
-        <NfcListener />
-      </SafeAreaView>
-    );
-  }
-
   /* ─── Selection mode ─────────────────────── */
   return (
     <SafeAreaView style={s.container}>
@@ -240,7 +220,7 @@ export default function PayFareScreen() {
           <MaterialCommunityIcons name="contactless-payment" size={56} color={Colors.salmon} />
         </View>
         <Text style={s.subtitle}>¿Cómo deseas pagar?</Text>
-        <Text style={s.description}>Escoge el método de pago para tu viaje</Text>
+        <Text style={s.description}>Escanea el código QR del autobús</Text>
       </View>
 
       <View style={s.optionsContainer}>
@@ -249,35 +229,10 @@ export default function PayFareScreen() {
             <Ionicons name="qr-code" size={28} color={Colors.salmon} />
           </View>
           <View style={s.optionText}>
-            <Text style={s.optionTitle}>Leer código QR</Text>
-            <Text style={s.optionDesc}>Escanea el QR del autobús</Text>
+            <Text style={s.optionTitle}>Escanear código QR</Text>
+            <Text style={s.optionDesc}>Apunta al QR del autobús para pagar</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={Colors.grayNeutral} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[s.optionCard, !nfcSupported && { opacity: 0.5 }]}
-          activeOpacity={nfcSupported ? 0.8 : 1}
-          onPress={() => { if (nfcSupported) handleNfc(); }}
-        >
-          <View style={[s.optionIcon, { backgroundColor: `${Colors.successGreen}15` }]}>
-            <MaterialCommunityIcons name="nfc" size={28} color={Colors.successGreen} />
-          </View>
-          <View style={s.optionText}>
-            <Text style={s.optionTitle}>NFC</Text>
-            {nfcSupported ? (
-              <Text style={s.optionDesc}>Más rápido</Text>
-            ) : (
-              <Text style={[s.optionDesc, { color: '#92400E' }]}>No disponible en tu dispositivo</Text>
-            )}
-          </View>
-          {nfcSupported ? (
-            <View style={s.badge}>
-              <Text style={s.badgeText}>⚡ Rápido</Text>
-            </View>
-          ) : (
-            <Ionicons name="warning" size={18} color="#92400E" />
-          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -360,17 +315,6 @@ const s = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: Colors.grayNeutral,
-  },
-  badge: {
-    backgroundColor: `${Colors.successGreen}18`,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.successGreen,
   },
   blurBack: {
     width: 40,
