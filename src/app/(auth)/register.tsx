@@ -7,6 +7,7 @@ import {
   Animated,
   Dimensions,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,10 +16,12 @@ import { Colors, Spacing } from '@/theme';
 import { RegisterStepper } from '@/features/auth/components/RegisterStepper';
 import { StepRole } from '@/features/auth/components/StepRole';
 import { StepIdentity } from '@/features/auth/components/StepIdentity';
+import { StepVerifyData } from '@/features/auth/components/StepVerifyData';
 import { StepCredentials } from '@/features/auth/components/StepCredentials';
 import { SuccessOverlay } from '@/features/auth/components/SuccessOverlay';
+import { verifyIdentity, register, OcrResult } from '@/services/authService';
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const ANIM_DURATION = 280;
 
@@ -50,14 +53,24 @@ export default function RegisterScreen() {
     ]).start();
   }, []);
 
+  // ── Accumulated form data ──
+  const [formData, setFormData] = useState<Record<string, any>>({});
+
+  const updateFormData = (patch: Record<string, any>) => {
+    setFormData((prev) => ({ ...prev, ...patch }));
+  };
+
   // Step 0 — Role
   const [role, setRole] = useState<'conductor' | 'pasajero' | null>(null);
 
   // Step 1 — Identity
   const [documentUri, setDocumentUri] = useState<string | null>(null);
   const [selfieUri, setSelfieUri] = useState<string | null>(null);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+  const [ocrResult, setOcrResult] = useState<OcrResult | null>(null);
 
-  // Step 2 — Credentials
+  // Step 3 — Credentials
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -106,28 +119,83 @@ export default function RegisterScreen() {
     }
   };
 
+  const goToStep = (step: number) => {
+    const direction = step > currentStep ? 'forward' : 'back';
+    animateTransition(direction, step);
+  };
+
   const goBack = () => {
     if (currentStep === 0) {
       router.replace('/(auth)/login');
+    } else if (currentStep === 3 && role === 'pasajero' && !ocrResult) {
+      // Passenger skipped OCR → go back to role selection
+      animateTransition('back', 0);
     } else {
       animateTransition('back', currentStep - 1);
     }
   };
 
-  const handleRegister = () => {
+  const handleSelectRole = (r: 'conductor' | 'pasajero') => {
+    setRole(r);
+    updateFormData({ role: r });
+  };
+
+  const handleVerifyIdentity = async () => {
+    if (!selfieUri || !documentUri) return;
+    setOcrLoading(true);
+    setOcrError(null);
+    try {
+      const response = await verifyIdentity(selfieUri, documentUri);
+      setOcrResult(response.data ?? null);
+      updateFormData({
+        selfieUri,
+        documentUri,
+        ocrResult: response.data,
+      });
+      goNext();
+    } catch (err: any) {
+      setOcrError(err.message || 'Error al verificar identidad.');
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+
+  const handleRetakePhotos = () => {
+    setDocumentUri(null);
+    setSelfieUri(null);
+    setOcrResult(null);
+    goToStep(1);
+  };
+
+  const handleRegister = async () => {
     setRegisterLoading(true);
-    // TODO: integrate with auth service
-    console.log('Register', { role, documentUri, selfieUri, email, password, acceptedTerms });
-    setTimeout(() => {
-      setRegisterLoading(false);
+    try {
+      const userType = role === 'conductor' ? 3 : 2;
+      const docData = formData.documentData ?? {};
+
+      await register({
+        email,
+        password,
+        userType,
+        dni: docData.documentNumber ?? '',
+        firstName: docData.firstName,
+        lastName: docData.lastName,
+        dateOfBirth: docData.dateOfBirth,
+        sex: docData.sex,
+      });
+
       setShowSuccess(true);
-    }, 1500);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo completar el registro.');
+    } finally {
+      setRegisterLoading(false);
+    }
   };
 
   const renderStep = () => {
     switch (currentStep) {
       case 0:
-        return <StepRole selectedRole={role} onSelectRole={setRole} onNext={goNext} />;
+        return <StepRole selectedRole={role} onSelectRole={handleSelectRole} onNext={goNext} />;
       case 1:
         return (
           <StepIdentity
@@ -135,10 +203,25 @@ export default function RegisterScreen() {
             selfieUri={selfieUri}
             onDocumentPicked={setDocumentUri}
             onSelfiePicked={setSelfieUri}
-            onNext={goNext}
+            onNext={handleVerifyIdentity}
+            onSkip={role === 'pasajero' ? () => goToStep(3) : undefined}
+            loading={ocrLoading}
+            error={ocrError}
           />
         );
       case 2:
+        return ocrResult ? (
+          <StepVerifyData
+            ocrResult={ocrResult}
+            role={role}
+            onNext={(editedData) => {
+              updateFormData({ documentData: editedData });
+              goNext();
+            }}
+            onRetake={handleRetakePhotos}
+          />
+        ) : null;
+      case 3:
         return (
           <StepCredentials
             email={email}

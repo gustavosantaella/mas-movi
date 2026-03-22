@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, ActionSheetIOS, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, ActionSheetIOS, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -11,6 +11,9 @@ type StepIdentityProps = {
   onDocumentPicked: (uri: string) => void;
   onSelfiePicked: (uri: string) => void;
   onNext: () => void;
+  onSkip?: () => void;
+  loading?: boolean;
+  error?: string | null;
 };
 
 async function pickFromCamera(onPick: (uri: string) => void, frontOnly: boolean) {
@@ -73,8 +76,11 @@ export function StepIdentity({
   onDocumentPicked,
   onSelfiePicked,
   onNext,
+  onSkip,
+  loading = false,
+  error = null,
 }: StepIdentityProps) {
-  const canContinue = !!documentUri && !!selfieUri;
+  const canContinue = !!documentUri && !!selfieUri && !loading;
 
   return (
     <View style={styles.container}>
@@ -116,15 +122,38 @@ export function StepIdentity({
       </TouchableOpacity>
       <Text style={styles.selfieHint}>* Evite usar accesorios para que el reconocimiento sea más efectivo</Text>
 
+      {error && (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={18} color={Colors.salmon} />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
       <TouchableOpacity
         style={[styles.nextButton, !canContinue && { opacity: 0.5 }]}
         activeOpacity={0.85}
         onPress={onNext}
         disabled={!canContinue}
       >
-        <Text style={styles.nextButtonText}>Continuar</Text>
-        <Ionicons name="arrow-forward" size={18} color="#fff" />
+        {loading ? (
+          <ActivityIndicator color="#fff" size="small" />
+        ) : (
+          <>
+            <Text style={styles.nextButtonText}>Continuar</Text>
+            <Ionicons name="arrow-forward" size={18} color="#fff" />
+          </>
+        )}
       </TouchableOpacity>
+
+      {onSkip && (
+        <TouchableOpacity
+          style={styles.skipButton}
+          activeOpacity={0.7}
+          onPress={onSkip}
+        >
+          <Text style={styles.skipText}>Saltar este paso</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -222,5 +251,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#fff',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: `${Colors.salmon}15`,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.base,
+    marginBottom: Spacing.base,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.salmon,
+  },
+  skipButton: {
+    alignItems: 'center',
+    paddingVertical: 14,
+  },
+  skipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.grayNeutral,
   },
 });

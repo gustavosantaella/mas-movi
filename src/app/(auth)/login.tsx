@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Animated,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,9 +13,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Gradients } from '@/theme';
 import { GradientButton, AppInput } from '@/components/ui';
 import { authStyles as styles } from '@/features/auth/styles';
+import { login as loginApi } from '@/services/authService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -78,12 +82,16 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     setLoading(true);
-    // TODO: integrate with auth service
-    console.log('Login', { email, password });
-    setTimeout(() => {
+    try {
+      const result = await loginApi({ email, password });
+      if (result.data?.token) {
+        await signIn(result.data.token);
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo iniciar sesión.');
+    } finally {
       setLoading(false);
-      router.replace('/(tabs)');
-    }, 1500);
+    }
   };
 
   const goToRegister = () => {
@@ -135,6 +143,17 @@ export default function LoginScreen() {
             helpDescription="La contraseña debe contener mínimo 8 caracteres, al menos 1 letra mayúscula y 1 símbolo especial (por ejemplo: @, #, $)."
             showPasswordValidator
           />
+
+          {/* ─── Forgot password ─────────────────────────── */}
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/forgot-password')}
+            style={{ alignSelf: 'flex-end', marginBottom: 8 }}
+            activeOpacity={0.7}
+          >
+            <Text style={{ fontSize: 13, fontWeight: '600', color: Colors.salmon }}>
+              ¿Olvidaste tu contraseña?
+            </Text>
+          </TouchableOpacity>
 
           {/* ─── Button ────────────────────────────────── */}
           <View style={styles.buttonContainer}>

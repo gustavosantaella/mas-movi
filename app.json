@@ -63,7 +63,8 @@
           "locationWhenInUsePermission": "MaaS necesita tu ubicación para calcular rutas de transporte."
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
