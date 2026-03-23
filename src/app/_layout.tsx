@@ -58,7 +58,7 @@ function RootNavigator() {
       }} />
 
       {/* ─── Driver screens ──────── */}
-      <Stack.Screen name="(driver)/generate-qr" options={{
+      <Stack.Screen name="(driver)" options={{
         headerShown: false,
         gestureEnabled: true,
         animation: 'slide_from_bottom',

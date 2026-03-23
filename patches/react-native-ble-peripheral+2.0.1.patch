@@ -32,10 +32,14 @@ index 9b5638c..a47705e 100644
  }
 -
 diff --git a/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java b/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java
-index 71a5f60..6334681 100644
+index 71a5f60..4c7f48b 100644
 --- a/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java
 +++ b/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java
-@@ -22,7 +22,7 @@ import android.content.Context;
+@@ -19,10 +19,11 @@ import android.bluetooth.le.ScanFilter;
+ import android.bluetooth.le.ScanResult;
+ import android.bluetooth.le.ScanSettings;
+ import android.content.Context;
++import android.annotation.SuppressLint;
  import android.os.Bundle;
  import android.os.Handler;
  import android.os.ParcelUuid;
@@ -44,3 +48,69 @@ index 71a5f60..6334681 100644
  import android.text.TextUtils;
  import android.util.Log;
  
+@@ -52,6 +53,7 @@ import com.facebook.react.bridge.Promise;
+ import com.facebook.react.bridge.WritableMap;
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.WritableArray;
++import com.facebook.react.modules.core.DeviceEventManagerModule;
+ 
+ 
+ 
+@@ -156,12 +158,19 @@ public class RNBLEModule extends ReactContextBaseJavaModule{
+             }
+             map.putArray("data", data);
+             map.putString("device", device.toString());
++            // Emit write event to JS
++            String valueStr = new String(value, Charset.forName("UTF-8"));
++            map.putString("value", valueStr);
++            reactContext
++                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
++                .emit("BLEPeripheralWriteRequest", map);
+             if (responseNeeded) {
+                 mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
+             }
+         }
+     };
+ 
++    @SuppressLint("MissingPermission")
+     @ReactMethod
+     public void start(final Promise promise){
+         mBluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+@@ -212,6 +221,7 @@ public class RNBLEModule extends ReactContextBaseJavaModule{
+         advertiser.startAdvertising(settings, data, advertisingCallback);
+ 
+     }
++    @SuppressLint("MissingPermission")
+     @ReactMethod
+     public void stop(){
+         if (mGattServer != null) {
+diff --git a/node_modules/react-native-ble-peripheral/ios/RNBLEPeripheral.swift b/node_modules/react-native-ble-peripheral/ios/RNBLEPeripheral.swift
+index 27c5925..17f425a 100644
+--- a/node_modules/react-native-ble-peripheral/ios/RNBLEPeripheral.swift
++++ b/node_modules/react-native-ble-peripheral/ios/RNBLEPeripheral.swift
+@@ -124,6 +124,16 @@ class BLEPeripheral: RCTEventEmitter, CBPeripheralManagerDelegate {
+             {
+                 let char = characteristic as! CBMutableCharacteristic
+                 char.value = request.value
++                // Emit write event to JS
++                if let data = request.value {
++                    let valueStr = String(data: data, encoding: .utf8) ?? ""
++                    let byteArray = data.map { NSNumber(value: $0) }
++                    sendEvent(withName: "BLEPeripheralWriteRequest", body: [
++                        "value": valueStr,
++                        "data": byteArray,
++                        "device": "unknown"
++                    ])
++                }
+             } else {
+                 alertJS("characteristic you are trying to access doesn't match")
+             }
+@@ -225,7 +235,7 @@ class BLEPeripheral: RCTEventEmitter, CBPeripheralManagerDelegate {
+         }
+     }
+ 
+-    @objc override func supportedEvents() -> [String]! { return ["onWarning"] }
++    @objc override func supportedEvents() -> [String]! { return ["onWarning", "BLEPeripheralWriteRequest"] }
+     override func startObserving() { hasListeners = true }
+     override func stopObserving() { hasListeners = false }
+     @objc override static func requiresMainQueueSetup() -> Bool { return false }

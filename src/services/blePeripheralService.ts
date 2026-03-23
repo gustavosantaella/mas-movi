@@ -1,4 +1,20 @@
-import BLEPeripheral from 'react-native-ble-peripheral';
+import { NativeModules, NativeEventEmitter, Platform, PermissionsAndroid } from 'react-native';
+
+/* ─── Safe native module access ──────────────── */
+const BLEPeripheral = NativeModules.BLEPeripheral;
+
+let bleEmitter: NativeEventEmitter | null = null;
+function getEmitter(): NativeEventEmitter {
+  if (!bleEmitter) {
+    if (!BLEPeripheral) {
+      throw new Error(
+        'El módulo BLEPeripheral no está disponible. Necesitas un dev build nativo (no Expo Go).',
+      );
+    }
+    bleEmitter = new NativeEventEmitter(BLEPeripheral);
+  }
+  return bleEmitter;
+}
 
 /* ─── UUID Generator ─────────────────────────── */
 function generateUUID(): string {
@@ -7,6 +23,35 @@ function generateUUID(): string {
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
+}
+
+/* ─── Android Permissions ────────────────────── */
+async function requestAndroidBlePermissions(): Promise<void> {
+  if (Platform.OS !== 'android') return;
+
+  if (Number(Platform.Version) >= 31) {
+    const results = await PermissionsAndroid.requestMultiple([
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    ]);
+
+    const allGranted = Object.values(results).every(
+      (r) => r === PermissionsAndroid.RESULTS.GRANTED,
+    );
+
+    if (!allGranted) {
+      throw new Error('No se otorgaron los permisos de Bluetooth necesarios.');
+    }
+  } else {
+    const result = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+    if (result !== PermissionsAndroid.RESULTS.GRANTED) {
+      throw new Error('No se otorgó el permiso de ubicación para Bluetooth.');
+    }
+  }
 }
 
 /* ─── Constants ──────────────────────────────── */
@@ -19,7 +64,6 @@ export interface BlePaymentData {
 }
 
 type PaymentListener = (payment: BlePaymentData) => void;
-let listeners: PaymentListener[] = [];
 
 /**
  * Generate a fresh session UUID for the BLE service.
@@ -31,47 +75,41 @@ export function createSessionUUID(): string {
 /**
  * CONDUCTOR: Start BLE peripheral advertising with a dynamic service UUID.
  * Creates a GATT service with a writable characteristic.
- * When a passenger writes payment data, the listener fires.
  */
 export async function startPeripheral(
   serviceUuid: string,
-  data: BlePaymentData,
+  _data: BlePaymentData,
 ): Promise<string> {
-  try {
-    // Add service with a writable characteristic
-    await BLEPeripheral.addService(serviceUuid, true);
-
-    await BLEPeripheral.addCharacteristicToService(
-      serviceUuid,
-      PAYMENT_CHAR_UUID,
-      8 | 16, // Write | WriteNoResponse permissions
-      8,      // Writable property
+  if (!BLEPeripheral) {
+    throw new Error(
+      'El módulo BLEPeripheral no está disponible. Necesitas un dev build nativo.',
     );
+  }
 
-    // Listen for writes from passenger (Central)
-    BLEPeripheral.onWriteRequest((event: any) => {
-      try {
-        const value = event?.value || event?.data;
-        if (!value) return;
+  // Request Android runtime permissions first
+  await requestAndroidBlePermissions();
 
-        // Decode base64 or raw string
-        let jsonStr: string;
-        try {
-          jsonStr = atob(value);
-        } catch {
-          jsonStr = value;
-        }
+  try {
+    BLEPeripheral.addService(serviceUuid, true);
 
-        const payment = JSON.parse(jsonStr) as BlePaymentData;
-        if (payment.driverId && payment.fare) {
-          listeners.forEach((fn) => fn(payment));
-        }
-      } catch {
-        // Invalid data — ignore
-      }
-    });
+    // iOS expects 5 args (including data string), Android expects 4
+    if (Platform.OS === 'ios') {
+      BLEPeripheral.addCharacteristicToService(
+        serviceUuid,
+        PAYMENT_CHAR_UUID,
+        8 | 16, // Write | WriteNoResponse permissions
+        8,      // Writable property
+        '',     // Initial data (empty)
+      );
+    } else {
+      BLEPeripheral.addCharacteristicToService(
+        serviceUuid,
+        PAYMENT_CHAR_UUID,
+        8 | 16,
+        8,
+      );
+    }
 
-    // Start advertising
     await BLEPeripheral.start();
 
     return serviceUuid;
@@ -85,9 +123,37 @@ export async function startPeripheral(
  * Returns unsubscribe function.
  */
 export function onPaymentReceived(listener: PaymentListener): () => void {
-  listeners.push(listener);
+  const emitter = getEmitter();
+  const subscription = emitter.addListener(
+    'BLEPeripheralWriteRequest',
+    (event: { value?: string; data?: number[] }) => {
+      try {
+        let jsonStr: string | undefined;
+
+        if (event.value) {
+          try {
+            jsonStr = atob(event.value);
+          } catch {
+            jsonStr = event.value;
+          }
+        } else if (event.data) {
+          jsonStr = String.fromCharCode(...event.data);
+        }
+
+        if (!jsonStr) return;
+
+        const payment = JSON.parse(jsonStr) as BlePaymentData;
+        if (payment.fare) {
+          listener(payment);
+        }
+      } catch {
+        // Invalid data — ignore
+      }
+    },
+  );
+
   return () => {
-    listeners = listeners.filter((fn) => fn !== listener);
+    subscription.remove();
   };
 }
 
@@ -95,9 +161,9 @@ export function onPaymentReceived(listener: PaymentListener): () => void {
  * CONDUCTOR: Stop BLE peripheral and advertising.
  */
 export async function stopPeripheral(): Promise<void> {
-  listeners = [];
+  if (!BLEPeripheral) return;
   try {
-    await BLEPeripheral.stop();
+    BLEPeripheral.stop();
   } catch {
     // Already stopped
   }
