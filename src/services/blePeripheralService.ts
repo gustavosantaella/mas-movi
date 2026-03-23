@@ -17,12 +17,12 @@ function getEmitter(): NativeEventEmitter {
 }
 
 /* ─── UUID Generator ─────────────────────────── */
-function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+function randomHex(len: number): string {
+  let out = '';
+  for (let i = 0; i < len; i++) {
+    out += ((Math.random() * 16) | 0).toString(16);
+  }
+  return out;
 }
 
 /* ─── Android Permissions ────────────────────── */
@@ -83,10 +83,15 @@ export interface BlePaymentData {
 type PaymentListener = (payment: BlePaymentData) => void;
 
 /**
- * Generate a fresh session UUID for the BLE service.
+ * Generate a branded session UUID for the BLE service.
+ * Format: aa05{driverId hex}-{random}-1000-8000-00805f9b34fb
+ * "aa05" is our hex-safe MaaS identifier (UUIDs only allow hex chars)
+ * Example (driver 42): aa05002a-f7b3-1000-8000-00805f9b34fb
  */
-export function createSessionUUID(): string {
-  return generateUUID();
+export function createSessionUUID(driverId: number = 0): string {
+  const driverHex = driverId.toString(16).padStart(4, '0').slice(-4);
+  const session = randomHex(4);
+  return `aa05${driverHex}-${session}-1000-8000-00805f9b34fb`;
 }
 
 /**

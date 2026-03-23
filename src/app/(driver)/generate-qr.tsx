@@ -6,7 +6,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  AppState,
 } from 'react-native';
+import { BleManager, State as BleState } from 'react-native-ble-plx';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,13 +33,52 @@ export default function GenerateQRScreen() {
   const { token } = useAuth();
   const [userId, setUserId] = useState<number | null>(null);
   const [bleActive, setBleActive] = useState(false);
+  const [btAdapterOn, setBtAdapterOn] = useState(true);
   const [toastQueue, setToastQueue] = useState<BlePaymentData[]>([]);
-  const [sessionUuid, setSessionUuid] = useState(() => createSessionUUID());
+  const [sessionUuid, setSessionUuid] = useState('');
   const isRestarting = useRef(false);
+  const bleManagerRef = useRef<BleManager | null>(null);
+  const sessionUuidRef = useRef('');
 
   useEffect(() => {
-    getCachedProfile().then((p) => { if (p) setUserId(p.id); });
+    getCachedProfile().then((p) => {
+      if (p) {
+        setUserId(p.id);
+        const uuid = createSessionUUID(p.id);
+        setSessionUuid(uuid);
+        sessionUuidRef.current = uuid;
+      }
+    });
   }, []);
+
+  /* ─── Real-time Bluetooth adapter monitor ─── */
+  useEffect(() => {
+    const mgr = new BleManager();
+    bleManagerRef.current = mgr;
+
+    // Subscribe to Bluetooth state changes
+    const sub = mgr.onStateChange((state) => {
+      const isOn = state === BleState.PoweredOn;
+      setBtAdapterOn(isOn);
+
+      if (!isOn) {
+        setBleActive(false);
+      }
+    }, true);
+
+    return () => {
+      sub.remove();
+      mgr.destroy();
+      bleManagerRef.current = null;
+    };
+  }, []);
+
+  /* ─── Auto-restart BLE when adapter turns back on ─── */
+  useEffect(() => {
+    if (btAdapterOn && userId && sessionUuidRef.current && !bleActive) {
+      startBle(sessionUuidRef.current);
+    }
+  }, [btAdapterOn]);
 
   /* ─── Start / restart BLE Peripheral ──────── */
   const startBle = useCallback(async (uuid: string) => {
@@ -45,6 +86,7 @@ export default function GenerateQRScreen() {
     try {
       await startPeripheral(uuid, { passengerId: 0, fare: FARE_AMOUNT, ts: Date.now() });
       setBleActive(true);
+      sessionUuidRef.current = uuid;
     } catch (err: any) {
       setBleActive(false);
       Alert.alert('Bluetooth', err.message);
@@ -67,7 +109,7 @@ export default function GenerateQRScreen() {
         await stopPeripheral();
         setBleActive(false);
 
-        const newUuid = createSessionUUID();
+        const newUuid = createSessionUUID(userId!);
         setSessionUuid(newUuid);
         await startBle(newUuid);
       } finally {
@@ -112,9 +154,13 @@ export default function GenerateQRScreen() {
 
       {/* BLE status */}
       <View style={s.statusRow}>
-        <View style={[s.statusDot, bleActive && s.statusDotActive]} />
-        <Text style={s.statusText}>
-          {bleActive ? 'Bluetooth activo — esperando pagos' : 'Iniciando Bluetooth…'}
+        <View style={[s.statusDot, bleActive && btAdapterOn ? s.statusDotActive : s.statusDotOff]} />
+        <Text style={[s.statusText, !btAdapterOn && { color: Colors.accent }]}>
+          {!btAdapterOn
+            ? 'Bluetooth desactivado — actívalo'
+            : bleActive
+              ? 'Bluetooth activo — esperando pagos'
+              : 'Iniciando Bluetooth…'}
         </Text>
       </View>
 
@@ -187,6 +233,9 @@ const s = StyleSheet.create({
   },
   statusDotActive: {
     backgroundColor: Colors.successGreen,
+  },
+  statusDotOff: {
+    backgroundColor: Colors.accent,
   },
   statusText: {
     fontSize: 12,
