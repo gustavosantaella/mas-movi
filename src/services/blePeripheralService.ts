@@ -58,7 +58,7 @@ async function requestAndroidBlePermissions(): Promise<void> {
 const PAYMENT_CHAR_UUID = '00000001-0000-1000-8000-00805f9b34fb';
 
 export interface BlePaymentData {
-  driverId: number;
+  passengerId: number;
   fare: number;
   ts: number;
 }

@@ -54,9 +54,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (newToken: string) => {
     await SecureStore.setItemAsync(TOKEN_KEY, newToken);
-    setToken(newToken);
 
-    // Cache profile on login
+    // Fetch profile BEFORE setting token so isAuthenticated and isDriver
+    // are set in the same render cycle (avoids flash of passenger screen)
     try {
       const res = await getProfile(newToken);
       if (res.data) {
@@ -64,6 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserType(res.data.userType);
       }
     } catch {}
+
+    setToken(newToken);
   };
 
   const signOut = async () => {

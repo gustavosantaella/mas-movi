@@ -43,7 +43,7 @@ export default function GenerateQRScreen() {
   const startBle = useCallback(async (uuid: string) => {
     if (!userId) return;
     try {
-      await startPeripheral(uuid, { driverId: userId, fare: FARE_AMOUNT, ts: Date.now() });
+      await startPeripheral(uuid, { passengerId: 0, fare: FARE_AMOUNT, ts: Date.now() });
       setBleActive(true);
     } catch (err: any) {
       setBleActive(false);
