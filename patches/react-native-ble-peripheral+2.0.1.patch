@@ -31,6 +31,18 @@ index 9b5638c..a47705e 100644
 +    implementation "com.facebook.react:react-native:+"
  }
 -
+diff --git a/node_modules/react-native-ble-peripheral/android/src/main/AndroidManifest.xml b/node_modules/react-native-ble-peripheral/android/src/main/AndroidManifest.xml
+index c0b5047..e864c34 100644
+--- a/node_modules/react-native-ble-peripheral/android/src/main/AndroidManifest.xml
++++ b/node_modules/react-native-ble-peripheral/android/src/main/AndroidManifest.xml
+@@ -2,4 +2,7 @@
+     package="com.himelbrand.ble.peripheral">
+     <uses-permission android:name="android.permission.BLUETOOTH" />
+     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
++    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
++    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
++    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+ </manifest>
 diff --git a/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java b/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java
 index 71a5f60..4c7f48b 100644
 --- a/node_modules/react-native-ble-peripheral/android/src/main/java/com/himelbrand/ble/peripheral/RNBLEModule.java

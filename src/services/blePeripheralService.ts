@@ -1,4 +1,4 @@
-import { NativeModules, NativeEventEmitter, Platform, PermissionsAndroid } from 'react-native';
+import { NativeModules, NativeEventEmitter, Platform, PermissionsAndroid, Alert, Linking } from 'react-native';
 
 /* ─── Safe native module access ──────────────── */
 const BLEPeripheral = NativeModules.BLEPeripheral;
@@ -30,19 +30,36 @@ async function requestAndroidBlePermissions(): Promise<void> {
   if (Platform.OS !== 'android') return;
 
   if (Number(Platform.Version) >= 31) {
-    const results = await PermissionsAndroid.requestMultiple([
+    const allPerms = [
       PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-      PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
       PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-    ]);
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
+    ].filter(Boolean);
 
-    const allGranted = Object.values(results).every(
-      (r) => r === PermissionsAndroid.RESULTS.GRANTED,
-    );
+    // Trigger the system dialog for all BLE permissions at once
+    await PermissionsAndroid.requestMultiple(allPerms as any);
 
-    if (!allGranted) {
-      throw new Error('No se otorgaron los permisos de Bluetooth necesarios.');
+    // Don't trust the request() result — verify with check()
+    // (Android returns wrong status for BLUETOOTH_ADVERTISE on many devices)
+    const denied: string[] = [];
+    for (const perm of allPerms) {
+      const granted = await PermissionsAndroid.check(perm);
+      if (!granted) {
+        denied.push(perm.split('.').pop() ?? perm);
+      }
+    }
+
+    if (denied.length > 0) {
+      console.warn('[BLE] Permisos no otorgados:', denied);
+      Alert.alert(
+        'Permisos de Bluetooth',
+        `Se necesitan los permisos: ${denied.join(', ')}.\n\nPor favor actívalos en Ajustes > Permisos > Dispositivos cercanos.`,
+        [
+          { text: 'Abrir Ajustes', onPress: () => Linking.openSettings() },
+          { text: 'Cancelar', style: 'cancel' },
+        ],
+      );
+      throw new Error('Permisos de Bluetooth necesarios.');
     }
   } else {
     const result = await PermissionsAndroid.request(
