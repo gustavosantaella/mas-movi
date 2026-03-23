@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { BlurView } from 'expo-blur';
@@ -14,7 +15,7 @@ import { useRouter } from 'expo-router';
 
 import { Colors } from '@/theme';
 import { PaymentSuccessOverlay } from '@/components/ui';
-import { sendPayment } from '@/services/paymentSocket';
+import { sendPaymentViaBle } from '@/services/bleCentralService';
 import { ScannerFrame } from '@/features/qr-scanner/components/ScannerFrame';
 import { ScannerControls } from '@/features/qr-scanner/components/ScannerControls';
 import { qrScannerStyles } from '@/features/qr-scanner/styles';
@@ -24,6 +25,7 @@ type PaymentMode = 'select' | 'qr' | 'confirm' | 'success';
 interface ScannedPayment {
   driverId: number;
   fare: number;
+  serviceUuid: string;
   ts: number;
 }
 
@@ -64,7 +66,7 @@ export default function PayFareScreen() {
 
     try {
       const data = JSON.parse(result.data) as ScannedPayment;
-      if (data.driverId && data.fare) {
+      if (data.driverId && data.fare && data.serviceUuid) {
         hasScanned.current = true;
         setScannedData(data);
         setMode('confirm');
@@ -78,14 +80,20 @@ export default function PayFareScreen() {
     if (!scannedData) return;
     setPaying(true);
 
-    // Simulate payment processing
-    await new Promise((r) => setTimeout(r, 1500));
+    try {
+      // Notify conductor via BLE (write payment to driver's peripheral)
+      await sendPaymentViaBle(scannedData.serviceUuid, {
+        passengerId: 0, // TODO: use real passenger ID from auth
+        fare: scannedData.fare,
+        ts: Date.now(),
+      });
 
-    // Notify conductor via WebSocket (non-blocking)
-    sendPayment(scannedData.driverId, scannedData.fare);
-
-    setPaying(false);
-    setMode('success');
+      setPaying(false);
+      setMode('success');
+    } catch (err: any) {
+      setPaying(false);
+      Alert.alert('Error de pago', err.message || 'No se pudo conectar al conductor por Bluetooth.');
+    }
   };
 
   const handleSuccessDismiss = () => {

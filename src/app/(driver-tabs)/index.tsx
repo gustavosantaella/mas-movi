@@ -2,15 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { Colors, Gradients } from '@/theme';
-import { ScreenLayout, GlassCard } from '@/components/ui';
+import { Colors } from '@/theme';
+import { ScreenLayout } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCachedProfile, UserProfile } from '@/services/userService';
-import { useNfcSupport } from '@/hooks/useNfcSupport';
 
 export default function DriverHomeScreen() {
   const { token } = useAuth();
-  const { isSupported: nfcSupported, isChecking: nfcChecking } = useNfcSupport();
   const [user, setUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
@@ -19,16 +17,6 @@ export default function DriverHomeScreen() {
 
   return (
     <ScreenLayout>
-      {/* NFC Warning */}
-      {!nfcChecking && !nfcSupported && (
-        <View style={s.nfcWarning}>
-          <Ionicons name="warning" size={18} color="#92400E" />
-          <Text style={s.nfcWarningText}>
-            Tu dispositivo no soporta NFC. Los pasajeros solo podrán pagar con QR.
-          </Text>
-        </View>
-      )}
-
       {/* Balance Card */}
       <View style={s.balanceCard}>
         <Text style={s.balanceLabel}>Saldo disponible</Text>
@@ -83,23 +71,6 @@ export default function DriverHomeScreen() {
 }
 
 const s = StyleSheet.create({
-  nfcWarning: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF3C7',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 16,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-  },
-  nfcWarningText: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#92400E',
-  },
   balanceCard: {
     backgroundColor: Colors.charcoal,
     borderRadius: 20,

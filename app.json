@@ -16,6 +16,7 @@
         "NSLocationWhenInUseUsageDescription": "MaaS necesita tu ubicación para mostrarte rutas de transporte, unidades cercanas y calcular la mejor ruta a tu destino.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "MaaS necesita tu ubicación en segundo plano para notificarte sobre las unidades de transporte cercanas y el estado de tu ruta en tiempo real.",
         "NSBluetoothAlwaysUsageDescription": "MaaS usa Bluetooth para comunicar pagos de pasaje entre el pasajero y el conductor.",
+        "UIBackgroundModes": ["bluetooth-peripheral", "bluetooth-central"],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
