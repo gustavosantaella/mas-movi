@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../shared/widgets/recent_trips_section.dart';
-import '../../../../shared/widgets/screen_layout.dart';
 import '../../../../shared/widgets/app_bottom_sheet.dart';
 import '../../../../shared/widgets/gradient_button.dart';
 import '../../../shared/profile/presentation/profile_screen.dart';
 import '../../../shared/providers/settings_provider.dart';
+import '../../../shared/providers/trip_refresh_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/driver_session_provider.dart';
 
@@ -22,10 +22,18 @@ class DriverHomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
-      body: ScreenLayout(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SafeArea(
+        child: RefreshIndicator(
+          color: AppColors.salmon,
+          onRefresh: () async {
+            ref.read(tripRefreshProvider.notifier).state++;
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             // ─── Avatar + Name ───────
             GestureDetector(
               onTap: () => openProfileSheet(context, ref),
@@ -95,9 +103,10 @@ class DriverHomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 24),
-            // ─── Recent Activity from SQLite ─────
             const RecentTripsSection(),
           ],
+        ),
+      ),
         ),
       ),
       floatingActionButton: Container(

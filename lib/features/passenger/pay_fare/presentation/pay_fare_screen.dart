@@ -11,6 +11,7 @@ import '../../../../core/constants.dart';
 import '../../../../shared/widgets/app_bottom_sheet.dart';
 import '../../../../shared/widgets/gradient_button.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../shared/providers/trip_refresh_provider.dart';
 
 class PayFareScreen extends ConsumerWidget {
   const PayFareScreen({super.key});
@@ -42,7 +43,7 @@ class PayFareScreen extends ConsumerWidget {
                   ),
                   const Expanded(
                     child: Text(
-                      'Pagar pasaje',
+                      'Empezar viaje',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 20,
@@ -434,6 +435,9 @@ class _QrScannerPageState extends State<_QrScannerPage> {
       directionFrom: directionFrom,
     );
 
+    // Trigger activity list refresh
+    ProviderScope.containerOf(context).read(tripRefreshProvider.notifier).state++;
+
     // Connect and notify driver of scan (+1 counter)
     final socketService = PaymentSocketService();
     socketService.connect();
@@ -682,6 +686,8 @@ class _PaymentConfirmSheetState extends State<_PaymentConfirmSheet> {
       await Future.delayed(const Duration(milliseconds: 300));
 
       if (mounted) {
+        // Trigger activity list refresh
+        ProviderScope.containerOf(context).read(tripRefreshProvider.notifier).state++;
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

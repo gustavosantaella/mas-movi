@@ -1,13 +1,22 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/colors.dart';
 import '../../features/driver/providers/driver_session_provider.dart';
 
-/// Bottom tab shell for driver screens
-class DriverShell extends ConsumerWidget {
+/// Bottom tab shell for driver screens.
+/// Listens for passenger payment events and shows a success alert.
+class DriverShell extends ConsumerStatefulWidget {
   final Widget child;
   const DriverShell({super.key, required this.child});
+
+  @override
+  ConsumerState<DriverShell> createState() => _DriverShellState();
+}
+
+class _DriverShellState extends ConsumerState<DriverShell> {
+  StreamSubscription? _paymentSub;
 
   static const _tabs = [
     _TabItem('/driver', Icons.home_outlined, Icons.home, 'Inicio'),
@@ -15,6 +24,61 @@ class DriverShell extends ConsumerWidget {
     _TabItem('/driver/payments', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, 'Pagos'),
     _TabItem('/driver/settings', Icons.settings_outlined, Icons.settings, 'Más'),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for payment events globally
+    final notifier = ref.read(driverSessionProvider);
+    _paymentSub = notifier.onPaymentReceived.listen(_onPaymentReceived);
+  }
+
+  @override
+  void dispose() {
+    _paymentSub?.cancel();
+    super.dispose();
+  }
+
+  void _onPaymentReceived(Map<String, dynamic> data) {
+    if (!mounted) return;
+    final amount = data['amount'] ?? 0;
+    final passengerId = data['passengerId'] ?? '—';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.payments, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('¡Pago recibido!',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                  Text('Pasajero #$passengerId  •  Bs. $amount',
+                      style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.9))),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.successGreen,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
@@ -25,7 +89,7 @@ class DriverShell extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final idx = _currentIndex(context);
     final bottomPad = MediaQuery.of(context).padding.bottom;
     final session = ref.watch(driverSessionProvider).state;
@@ -64,13 +128,13 @@ class DriverShell extends ConsumerWidget {
               ),
             ),
           // ─── Screen content ──────────────────
-          Expanded(child: child),
+          Expanded(child: widget.child),
         ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.borderLightGray, width: 1)),
+          border: const Border(top: BorderSide(color: AppColors.borderLightGray, width: 1)),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.06), offset: const Offset(0, -2), blurRadius: 8),
           ],

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../shared/widgets/recent_trips_section.dart';
 import '../../../shared/profile/presentation/profile_screen.dart';
+import '../../../shared/providers/trip_refresh_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -16,10 +17,16 @@ class HomeScreen extends ConsumerWidget {
       backgroundColor: AppColors.bgWhite,
       body: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: RefreshIndicator(
+          color: AppColors.salmon,
+          onRefresh: () async {
+            ref.read(tripRefreshProvider.notifier).state++;
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               // ─── Header ─────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
@@ -195,6 +202,7 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 100),
             ],
           ),
+        ),
         ),
       ),
     );

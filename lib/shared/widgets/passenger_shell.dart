@@ -34,6 +34,13 @@ class _PassengerShellState extends State<PassengerShell> {
     _checkActiveTrip();
   }
 
+  @override
+  void didUpdateWidget(covariant PassengerShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-check when the child (route) changes
+    _checkActiveTrip();
+  }
+
   Future<void> _checkActiveTrip() async {
     final trip = await TripService.getActiveTrip();
     if (mounted) setState(() => _activeTrip = trip);
