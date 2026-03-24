@@ -432,6 +432,7 @@ class _QrScannerPageState extends State<_QrScannerPage> {
       boardingLong: boardingLong,
       driverId: driverId is int ? driverId : int.tryParse(driverId.toString()),
       passengerId: passengerId,
+      sessionId: sessionId,
       directionFrom: directionFrom,
     );
 

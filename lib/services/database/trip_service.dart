@@ -10,7 +10,7 @@ class TripService {
     final dbPath = await getDatabasesPath();
     _db = await openDatabase(
       join(dbPath, 'guayaba_trips.db'),
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE trip_history (
@@ -21,6 +21,7 @@ class TripService {
             landing_long REAL,
             driver_id INTEGER,
             passenger_id INTEGER,
+            session_id TEXT,
             amount REAL,
             description TEXT,
             direction_from TEXT,
@@ -39,6 +40,9 @@ class TripService {
           await db.execute('ALTER TABLE trip_history ADD COLUMN boarded_at TEXT');
           await db.execute('ALTER TABLE trip_history ADD COLUMN landed_at TEXT');
         }
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE trip_history ADD COLUMN session_id TEXT');
+        }
       },
     );
     return _db!;
@@ -50,6 +54,7 @@ class TripService {
     double? boardingLong,
     int? driverId,
     int? passengerId,
+    String? sessionId,
     String? directionFrom,
   }) async {
     final db = await database;
@@ -58,6 +63,7 @@ class TripService {
       'boarding_long': boardingLong,
       'driver_id': driverId,
       'passenger_id': passengerId,
+      'session_id': sessionId,
       'direction_from': directionFrom,
       'status': 'active',
       'boarded_at': DateTime.now().toIso8601String(),
