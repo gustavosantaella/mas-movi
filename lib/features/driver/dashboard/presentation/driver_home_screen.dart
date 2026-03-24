@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/colors.dart';
+import '../../../../shared/widgets/recent_trips_section.dart';
 import '../../../../shared/widgets/screen_layout.dart';
 import '../../../../shared/widgets/app_bottom_sheet.dart';
 import '../../../../shared/widgets/gradient_button.dart';
@@ -94,30 +95,8 @@ class DriverHomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 24),
-            // ─── Recent Activity ─────
-            const Text('Actividad reciente',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.charcoal)),
-            const SizedBox(height: 14),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              decoration: BoxDecoration(
-                color: AppColors.bgLightGray,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.borderLightGray),
-              ),
-              child: const Column(
-                children: [
-                  Icon(Icons.receipt_long, size: 40, color: AppColors.grayNeutral),
-                  SizedBox(height: 12),
-                  Text('No hay actividad aún',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.charcoal)),
-                  SizedBox(height: 4),
-                  Text('Genera un QR para empezar a cobrar pasajes',
-                      style: TextStyle(fontSize: 13, color: AppColors.grayNeutral)),
-                ],
-              ),
-            ),
+            // ─── Recent Activity from SQLite ─────
+            const RecentTripsSection(),
           ],
         ),
       ),

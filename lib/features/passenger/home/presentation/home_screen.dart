@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/colors.dart';
+import '../../../../shared/widgets/recent_trips_section.dart';
 import '../../../shared/profile/presentation/profile_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -184,76 +185,10 @@ class HomeScreen extends ConsumerWidget {
 
               const SizedBox(height: 28),
 
-              // ─── Recent Activity Header ─────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Actividad Reciente',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.charcoal,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => context.push('/trip-history'),
-                      child: const Text(
-                        'Ver todo >',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.salmon,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 14),
-
-              // ─── Activity Items ─────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    _ActivityItem(
-                      icon: Icons.directions_bus,
-                      iconBgColor: AppColors.salmon.withValues(alpha: 0.12),
-                      iconColor: AppColors.salmon,
-                      title: 'Viaje',
-                      subtitle: 'Metro Línea 1: Plaza Venezu...',
-                      date: 'Hoy, 08:45',
-                      amount: '-Bs. 2.50',
-                      amountColor: AppColors.charcoal,
-                    ),
-                    const SizedBox(height: 10),
-                    _ActivityItem(
-                      icon: Icons.account_balance_wallet,
-                      iconBgColor: AppColors.successGreen.withValues(alpha: 0.12),
-                      iconColor: AppColors.successGreen,
-                      title: 'Recarga',
-                      subtitle: 'Pago Móvil Mercantil •••• 4532',
-                      date: 'Ayer, 18:30',
-                      amount: '+Bs. 50',
-                      amountColor: AppColors.successGreen,
-                    ),
-                    const SizedBox(height: 10),
-                    _ActivityItem(
-                      icon: Icons.directions_bus,
-                      iconBgColor: AppColors.salmon.withValues(alpha: 0.12),
-                      iconColor: AppColors.salmon,
-                      title: 'Viaje',
-                      subtitle: 'Metrobús: Altamira → Los Pa...',
-                      date: '14 Mar, 14:20',
-                      amount: '-Bs. 1.80',
-                      amountColor: AppColors.charcoal,
-                    ),
-                  ],
-                ),
+              // ─── Recent Activity from SQLite ─────────
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: RecentTripsSection(),
               ),
 
               // Bottom padding for tab bar
@@ -329,96 +264,4 @@ class _QuickActionCard extends StatelessWidget {
   }
 }
 
-// ─── Activity Item ────────────────────
-class _ActivityItem extends StatelessWidget {
-  final IconData icon;
-  final Color iconBgColor;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final String date;
-  final String amount;
-  final Color amountColor;
 
-  const _ActivityItem({
-    required this.icon,
-    required this.iconBgColor,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.date,
-    required this.amount,
-    required this.amountColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLightGray),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, size: 22, color: iconColor),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.charcoal,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 12, color: AppColors.grayNeutral),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  date,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.grayNeutral.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            amount,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: amountColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Guayaba necesita tu ubicación para registrar el punto de abordaje y destino de tus viajes.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Guayaba necesita tu ubicación para registrar el punto de abordaje y destino de tus viajes.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Guayaba necesita acceso a tu galería para guardar el código QR.</string>
 </dict>
 </plist>

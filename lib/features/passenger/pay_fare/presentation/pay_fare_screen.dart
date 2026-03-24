@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../services/socket/payment_socket_service.dart';
+import '../../../../services/database/trip_service.dart';
+import '../../../../services/location/location_helper.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/constants.dart';
 import '../../../../shared/widgets/app_bottom_sheet.dart';
@@ -408,11 +410,29 @@ class _QrScannerPageState extends State<_QrScannerPage> {
     }
   }
 
-  void _showPaymentConfirmation(
-      BuildContext context, Map<String, dynamic> qrData, int passengerId) {
+  Future<void> _showPaymentConfirmation(
+      BuildContext context, Map<String, dynamic> qrData, int passengerId) async {
     final fare = qrData['fare'] ?? '—';
-    final driverId = qrData['driverId'] ?? '—';
+    final driverId = qrData['driverId'];
     final sessionId = qrData['sessionId']?.toString() ?? '';
+
+    // Get boarding location
+    final position = await LocationHelper.getCurrentPosition();
+    final boardingLat = position?.latitude;
+    final boardingLong = position?.longitude;
+    String? directionFrom;
+    if (boardingLat != null && boardingLong != null) {
+      directionFrom = await LocationHelper.getAddress(boardingLat, boardingLong);
+    }
+
+    // Create trip record with boarding data
+    final tripId = await TripService.createTrip(
+      boardingLat: boardingLat,
+      boardingLong: boardingLong,
+      driverId: driverId is int ? driverId : int.tryParse(driverId.toString()),
+      passengerId: passengerId,
+      directionFrom: directionFrom,
+    );
 
     // Connect and notify driver of scan (+1 counter)
     final socketService = PaymentSocketService();
@@ -423,6 +443,8 @@ class _QrScannerPageState extends State<_QrScannerPage> {
         passengerId: passengerId,
       );
     });
+
+    if (!mounted) return;
 
     showAppBottomSheet(
       context: context,
@@ -435,6 +457,7 @@ class _QrScannerPageState extends State<_QrScannerPage> {
         sessionId: sessionId,
         passengerId: passengerId,
         socketService: socketService,
+        tripId: tripId,
       ),
     );
   }
@@ -600,12 +623,14 @@ class _PaymentConfirmSheet extends StatefulWidget {
   final String sessionId;
   final int passengerId;
   final PaymentSocketService socketService;
+  final int tripId;
   const _PaymentConfirmSheet({
     required this.fare,
     required this.driverId,
     required this.sessionId,
     required this.passengerId,
     required this.socketService,
+    required this.tripId,
   });
 
   @override
@@ -624,13 +649,33 @@ class _PaymentConfirmSheetState extends State<_PaymentConfirmSheet> {
   Future<void> _confirmPayment() async {
     setState(() => _loading = true);
     try {
+      // Get landing location
+      final position = await LocationHelper.getCurrentPosition();
+      final landingLat = position?.latitude ?? 0.0;
+      final landingLong = position?.longitude ?? 0.0;
+      String? directionTo;
+      if (landingLat != 0.0 && landingLong != 0.0) {
+        directionTo = await LocationHelper.getAddress(landingLat, landingLong);
+      }
+
+      final amount = double.tryParse(widget.fare) ?? 1.50;
+
       // Send payment via WebSocket
       widget.socketService.passengerPay(
         sessionId: widget.sessionId,
         passengerId: widget.passengerId,
-        amount: double.tryParse(widget.fare) ?? 1.50,
-        lat: 0.0,  // TODO: get real location
-        lng: 0.0,  // TODO: get real location
+        amount: amount,
+        lat: landingLat,
+        lng: landingLong,
+      );
+
+      // Complete the trip in SQLite
+      await TripService.completeTrip(
+        tripId: widget.tripId,
+        landingLat: landingLat,
+        landingLong: landingLong,
+        amount: amount,
+        directionTo: directionTo,
       );
 
       // Brief delay to let the WS message arrive
