@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../services/socket/payment_socket_service.dart';
 import '../../../../core/theme/colors.dart';
+import '../../../../core/constants.dart';
 import '../../../../shared/widgets/app_bottom_sheet.dart';
 import '../../../../shared/widgets/gradient_button.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -270,7 +272,6 @@ class _QrScannerPageState extends State<_QrScannerPage> {
     try {
       qrData = jsonDecode(barcode.rawValue!) as Map<String, dynamic>;
     } catch (_) {
-      // Not valid JSON — show error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -283,10 +284,127 @@ class _QrScannerPageState extends State<_QrScannerPage> {
       return;
     }
 
-    // Show confirmation sheet
-    if (mounted) {
-      Navigator.of(context).pop(); // close scanner
-      _showPaymentConfirmation(context, qrData, widget.passengerId);
+    final driverId = qrData['driverId'];
+    if (driverId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('QR no contiene datos del conductor'),
+            backgroundColor: AppColors.salmon,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+
+    // Check driver status before proceeding
+    _checkDriverStatus(driverId, qrData);
+  }
+
+  Future<void> _checkDriverStatus(
+      dynamic driverId, Map<String, dynamic> qrData) async {
+    try {
+      final response = await Dio().get(
+        '$apiBaseUrl/mobility/driver/$driverId/status',
+      );
+
+      if (!mounted) return;
+      final data = response.data as Map<String, dynamic>;
+      final isActive = data['active'] == true;
+
+      if (isActive) {
+        final sessionId = data['sessionId']?.toString() ?? '';
+        // Inject sessionId from server into qrData
+        qrData['sessionId'] = sessionId;
+
+        // Show success dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20)),
+            icon: const Icon(Icons.directions_bus,
+                size: 48, color: AppColors.successGreen),
+            title: const Text('¡Empecemos el viaje!',
+                style: TextStyle(fontWeight: FontWeight.w800)),
+            content: const Text(
+              'El conductor está activo y listo para recibirte.',
+              textAlign: TextAlign.center,
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.successGreen,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 32, vertical: 12),
+                ),
+                child: const Text('Continuar',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        );
+
+        if (mounted) {
+          Navigator.of(context).pop(); // close scanner
+          _showPaymentConfirmation(context, qrData, widget.passengerId);
+        }
+      } else {
+        // Show inactive dialog
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20)),
+            icon: const Icon(Icons.error_outline,
+                size: 48, color: Color(0xFFE53935)),
+            title: const Text('Conductor inactivo',
+                style: TextStyle(fontWeight: FontWeight.w800)),
+            content: const Text(
+              'Este conductor no está en servicio en este momento. '
+              'Intenta de nuevo o toma otra unidad.',
+              textAlign: TextAlign.center,
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // close dialog
+                  if (mounted) Navigator.of(context).pop(); // close scanner
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE53935),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 32, vertical: 12),
+                ),
+                child: const Text('Entendido',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error de conexión: $e'),
+            backgroundColor: const Color(0xFFE53935),
+          ),
+        );
+        Navigator.of(context).pop();
+      }
     }
   }
 
