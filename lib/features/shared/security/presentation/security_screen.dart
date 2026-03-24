@@ -7,7 +7,7 @@ import '../../../../shared/widgets/app_bottom_sheet.dart';
 import '../../../../shared/widgets/gradient_button.dart';
 import '../../../../shared/widgets/app_input.dart';
 import '../../../auth/providers/auth_provider.dart';
-import '../../../auth/data/auth_repository.dart';
+import '../../../../services/auth/auth_repository.dart';
 
 class SecurityScreen extends ConsumerWidget {
   const SecurityScreen({super.key});

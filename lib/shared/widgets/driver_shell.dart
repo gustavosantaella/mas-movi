@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/colors.dart';
+import '../../features/driver/providers/driver_session_provider.dart';
 
 /// Bottom tab shell for driver screens
-class DriverShell extends StatelessWidget {
+class DriverShell extends ConsumerWidget {
   final Widget child;
   const DriverShell({super.key, required this.child});
 
   static const _tabs = [
     _TabItem('/driver', Icons.home_outlined, Icons.home, 'Inicio'),
     _TabItem('/driver/activity', Icons.access_time_outlined, Icons.access_time_filled, 'Actividad'),
-    _TabItem('/generate-qr', Icons.qr_code, Icons.qr_code, ''),
     _TabItem('/driver/payments', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, 'Pagos'),
     _TabItem('/driver/settings', Icons.settings_outlined, Icons.settings, 'Más'),
   ];
@@ -24,12 +25,48 @@ class DriverShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final idx = _currentIndex(context);
     final bottomPad = MediaQuery.of(context).padding.bottom;
+    final session = ref.watch(driverSessionProvider).state;
 
     return Scaffold(
-      body: child,
+      body: Column(
+        children: [
+          // ─── Session status bar ──────────────
+          if (session.isActive)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 4,
+                bottom: 6,
+              ),
+              decoration: const BoxDecoration(
+                color: AppColors.successGreen,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 7, height: 7,
+                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'En servicio  •  ${session.passengerCount} pasajeros',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          // ─── Screen content ──────────────────
+          Expanded(child: child),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -43,29 +80,7 @@ class DriverShell extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(_tabs.length, (i) {
             final tab = _tabs[i];
-            final isCenter = i == 2;
             final isActive = idx == i;
-
-            if (isCenter) {
-              return GestureDetector(
-                onTap: () => context.push('/generate-qr'),
-                child: Transform.translate(
-                  offset: const Offset(0, -10),
-                  child: Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppColors.salmon,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(color: AppColors.salmon.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4)),
-                      ],
-                    ),
-                    child: const Icon(Icons.qr_code, color: Colors.white, size: 26),
-                  ),
-                ),
-              );
-            }
 
             return GestureDetector(
               onTap: () => context.go(tab.path),

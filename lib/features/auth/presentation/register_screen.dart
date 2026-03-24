@@ -7,7 +7,7 @@ import '../../../core/theme/colors.dart';
 import '../../../core/constants.dart';
 import '../../../shared/widgets/gradient_button.dart';
 import '../../../shared/widgets/app_input.dart';
-import '../../auth/data/auth_repository.dart';
+import '../../../services/auth/auth_repository.dart';
 
 const _totalSteps = 4;
 

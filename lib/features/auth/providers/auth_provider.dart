@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:guayaba_app/core/network/api_client.dart';
 import 'package:guayaba_app/services/storage/secure_storage.dart';
-import 'package:guayaba_app/features/auth/data/auth_repository.dart';
+import 'package:guayaba_app/services/auth/auth_repository.dart';
 import 'package:guayaba_app/features/user/data/models/user_profile.dart';
 
 /// Auth state

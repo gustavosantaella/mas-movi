@@ -1,295 +1,332 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:uuid/uuid.dart';
-import '../../../../services/ble/ble_driver_service.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../shared/providers/settings_provider.dart';
 
-class GenerateQrScreen extends ConsumerStatefulWidget {
+class GenerateQrScreen extends ConsumerWidget {
   const GenerateQrScreen({super.key});
 
   @override
-  ConsumerState<GenerateQrScreen> createState() => _GenerateQrScreenState();
-}
-
-class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen>
-    with TickerProviderStateMixin {
-  late final String _sessionId;
-  late final BleDriverService _bleService;
-  int _passengerCount = 0;
-
-  // Toast animation
-  final List<_ToastEntry> _toasts = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _sessionId = const Uuid().v4();
-    _bleService = BleDriverService(
-      sessionId: _sessionId.substring(0, 8),
-    );
-    _bleService.onPaymentReceived.listen((data) {
-      _onPaymentReceived(
-        passengerName: data['passengerName'] ?? 'Pasajero',
-      );
-    });
-    _bleService.start();
-  }
-
-  @override
-  void dispose() {
-    _bleService.dispose();
-    for (final t in _toasts) {
-      t.controller.dispose();
-    }
-    super.dispose();
-  }
-
-  void _onPaymentReceived({String passengerName = 'Pasajero'}) {
-    setState(() => _passengerCount++);
-
-    final ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    final entry = _ToastEntry(
-      controller: ctrl,
-      name: passengerName,
-      amount: 'Bs. 1,50',
-      count: _passengerCount,
-    );
-
-    setState(() => _toasts.add(entry));
-    ctrl.forward();
-
-    Future.delayed(const Duration(seconds: 3), () {
-      ctrl.reverse().then((_) {
-        if (mounted) {
-          setState(() => _toasts.remove(entry));
-          ctrl.dispose();
-        }
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).state.user;
     final driverId = user?.id ?? 0;
-
-    final qrData =
-        '{"driverId":$driverId,"fare":1.5,"sessionId":"$_sessionId","ts":${DateTime.now().millisecondsSinceEpoch}}';
+    final qrData = '{"driverId":$driverId}';
+    final qrKey = GlobalKey();
 
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            // ─── Main content ─────────────────────────
-            Column(
-              children: [
-                // ─── Header ───────────────────────────
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.charcoal.withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.arrow_back_ios_new,
-                              size: 18, color: AppColors.charcoal),
-                        ),
+            // ─── Header ───────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.charcoal.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const Expanded(
-                        child: Text(
-                          'Cobrar pasaje',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.charcoal,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                      ),
-                      // Passenger counter badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: AppColors.successGreen.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.people_outline,
-                                size: 16, color: AppColors.successGreen),
-                            const SizedBox(width: 4),
-                            Text(
-                              '$_passengerCount',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.successGreen,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      child: const Icon(Icons.arrow_back_ios_new,
+                          size: 18, color: AppColors.charcoal),
+                    ),
                   ),
-                ),
+                  const Expanded(
+                    child: Text(
+                      'Tu Código QR',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.charcoal,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 34),
+                ],
+              ),
+            ),
 
-                // ─── Body ─────────────────────────────
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Fare card
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 20),
-                        decoration: BoxDecoration(
-                          color: AppColors.charcoal,
-                          borderRadius: BorderRadius.circular(20),
+            // ─── Scrollable content ─────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 40),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+
+                    // ─── Subtitle ──────────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Text(
+                        'Este es tu código único. Imprímelo y pégalo en tu unidad.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.grayNeutral.withValues(alpha: 0.8),
+                          height: 1.4,
                         ),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Tarifa del pasaje',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white.withValues(alpha: 0.6),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Bs. 1,50',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ─── QR Card with shadow ─────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.salmon.withValues(alpha: 0.2),
+                              blurRadius: 30,
+                              offset: const Offset(0, 12),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 28),
-
-                      // QR container
-                      Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(24),
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: AppGradients.salmonButton,
-                            ),
-                          ),
+                        child: RepaintBoundary(
+                          key: qrKey,
                           child: Container(
-                            padding: const EdgeInsets.all(18),
+                            padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: QrImageView(
-                              data: qrData,
-                              size: 200,
-                              version: QrVersions.auto,
-                              eyeStyle: const QrEyeStyle(
-                                eyeShape: QrEyeShape.square,
-                                color: AppColors.charcoal,
-                              ),
-                              dataModuleStyle: const QrDataModuleStyle(
-                                dataModuleShape: QrDataModuleShape.square,
-                                color: AppColors.charcoal,
+                              borderRadius: BorderRadius.circular(28),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: AppGradients.salmonButton,
                               ),
                             ),
-                          ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      const Text(
-                        'Muestra este QR a los pasajeros',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.charcoal,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Se renueva automáticamente',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.grayNeutral,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Status
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 40),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.bgLightGray,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.borderLightGray),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(28, 28, 28, 20),
                               decoration: BoxDecoration(
-                                color: AppColors.successGreen,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.successGreen
-                                        .withValues(alpha: 0.5),
-                                    blurRadius: 6,
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Column(
+                                children: [
+                                  // Logo
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 28,
+                                        height: 28,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.salmon.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Icon(Icons.directions_bus,
+                                            size: 16, color: AppColors.salmon),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Guayaba',
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.salmon,
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Escanea para pagar tu pasaje',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.grayNeutral.withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+
+                                  // QR code
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.bgLightGray,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: QrImageView(
+                                      data: qrData,
+                                      size: 180,
+                                      version: QrVersions.auto,
+                                      eyeStyle: const QrEyeStyle(
+                                        eyeShape: QrEyeShape.square,
+                                        color: AppColors.charcoal,
+                                      ),
+                                      dataModuleStyle: const QrDataModuleStyle(
+                                        dataModuleShape: QrDataModuleShape.square,
+                                        color: AppColors.charcoal,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Driver badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.charcoal,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      'Conductor #$driverId',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            const Text(
-                              'Listo para cobrar',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.charcoal,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    // ─── Download Button ──────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          gradient: const LinearGradient(
+                            colors: AppGradients.salmonButton,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.salmon.withValues(alpha: 0.35),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _downloadQr(context, ref, qrKey),
+                            borderRadius: BorderRadius.circular(18),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.download_rounded,
+                                      size: 22, color: Colors.white),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Descargar QR',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
                               ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // ─── Instructions Card ───────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                              color: AppColors.borderLightGray, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.salmon.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.lightbulb_outline,
+                                      size: 18, color: AppColors.salmon),
+                                ),
+                                const SizedBox(width: 10),
+                                const Text(
+                                  '¿Cómo funciona?',
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.charcoal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            const _InstructionStep(
+                              number: '1',
+                              color: AppColors.salmon,
+                              text: 'Descarga el Código QR',
+                            ),
+                            const _InstructionStep(
+                              number: '2',
+                              color: Color(0xFF7C5CFC),
+                              text: 'Pégalo en una parte visible para que el pasajero pueda escanear',
+                            ),
+                            const _InstructionStep(
+                              number: '3',
+                              color: AppColors.successGreen,
+                              text: 'El pasajero escaneará el QR y se actualizará la app con un nuevo abordaje',
+                            ),
+                            const _InstructionStep(
+                              number: '4',
+                              color: Color(0xFFF5A623),
+                              text: 'Cuando el pasajero se baje, oprimirá el botón Pagar y te llegarán tus churupitos 💰',
+                              isLast: true,
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-
-            // ─── Stacked toasts (top) ─────────────────
-            Positioned(
-              top: 8,
-              left: 16,
-              right: 16,
-              child: Column(
-                children: _toasts.map((t) => _PaymentToast(entry: t)).toList(),
               ),
             ),
           ],
@@ -297,108 +334,131 @@ class _GenerateQrScreenState extends ConsumerState<GenerateQrScreen>
       ),
     );
   }
+
+  Future<void> _downloadQr(
+      BuildContext context, WidgetRef ref, GlobalKey qrKey) async {
+    try {
+      final boundary =
+          qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) return;
+
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return;
+
+      final pngBytes = byteData.buffer.asUint8List();
+      await ImageGallerySaverPlus.saveImage(
+        Uint8List.fromList(pngBytes),
+        quality: 100,
+        name: 'guayaba_qr_${DateTime.now().millisecondsSinceEpoch}',
+      );
+
+      // Mark as downloaded
+      await ref.read(settingsProvider).markQrDownloaded();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('QR guardado en la galería ✓',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+              ],
+            ),
+            backgroundColor: AppColors.successGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar: $e'),
+            backgroundColor: const Color(0xFFE53935),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
+  }
 }
 
-// ─── Toast data ─────────────────────────────────────────
-class _ToastEntry {
-  final AnimationController controller;
-  final String name;
-  final String amount;
-  final int count;
+// ─── Instruction Step ───────────────────────────────────
+class _InstructionStep extends StatelessWidget {
+  final String number;
+  final Color color;
+  final String text;
+  final bool isLast;
 
-  _ToastEntry({
-    required this.controller,
-    required this.name,
-    required this.amount,
-    required this.count,
+  const _InstructionStep({
+    required this.number,
+    required this.color,
+    required this.text,
+    this.isLast = false,
   });
-}
-
-// ─── Toast widget ───────────────────────────────────────
-class _PaymentToast extends StatelessWidget {
-  final _ToastEntry entry;
-  const _PaymentToast({required this.entry});
 
   @override
   Widget build(BuildContext context) {
-    final slide = Tween<Offset>(
-      begin: const Offset(0, -1.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: entry.controller,
-      curve: Curves.easeOutBack,
-      reverseCurve: Curves.easeIn,
-    ));
-
-    final fade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: entry.controller, curve: Curves.easeOut),
-    );
-
-    return SlideTransition(
-      position: slide,
-      child: FadeTransition(
-        opacity: fade,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.successGreen,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.successGreen.withValues(alpha: 0.35),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check, size: 20, color: Colors.white),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '¡Pago recibido!',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${entry.name} · ${entry.amount}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.85),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                '#${entry.count}',
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Number badge
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                number,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: color,
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(width: 14),
+          // Connecting line + text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: Text(
+                    text,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.charcoal,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+                if (!isLast)
+                  Container(
+                    margin: const EdgeInsets.only(top: 10),
+                    height: 1,
+                    color: AppColors.borderLightGray,
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

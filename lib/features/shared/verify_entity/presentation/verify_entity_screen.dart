@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../shared/widgets/app_bottom_sheet.dart';
 import '../../../../shared/widgets/gradient_button.dart';
-import '../../../auth/data/auth_repository.dart';
+import '../../../../services/auth/auth_repository.dart';
 import '../../../auth/providers/auth_provider.dart';
 
 /// Opens the identity verification bottom sheet.

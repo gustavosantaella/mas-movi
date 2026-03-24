@@ -6,7 +6,7 @@ import '../../../../shared/widgets/app_input.dart';
 import '../../../../shared/widgets/gradient_button.dart';
 import '../../../../shared/helpers/date_formatter.dart';
 import '../../../auth/providers/auth_provider.dart';
-import '../../../auth/data/auth_repository.dart';
+import '../../../../services/auth/auth_repository.dart';
 
 class PersonalInfoScreen extends ConsumerStatefulWidget {
   const PersonalInfoScreen({super.key});

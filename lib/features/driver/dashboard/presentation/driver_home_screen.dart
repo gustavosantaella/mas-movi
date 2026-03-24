@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../shared/widgets/screen_layout.dart';
+import '../../../../shared/widgets/app_bottom_sheet.dart';
+import '../../../../shared/widgets/gradient_button.dart';
 import '../../../shared/profile/presentation/profile_screen.dart';
+import '../../../shared/providers/settings_provider.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../providers/driver_session_provider.dart';
 
 class DriverHomeScreen extends ConsumerWidget {
   const DriverHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(driverSessionProvider).state;
+    final settings = ref.watch(settingsProvider);
+    final qrDownloaded = settings.qrDownloaded;
+
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
       body: ScreenLayout(
@@ -106,6 +116,98 @@ class DriverHomeScreen extends ConsumerWidget {
                   Text('Genera un QR para empezar a cobrar pasajes',
                       style: TextStyle(fontSize: 13, color: AppColors.grayNeutral)),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: Container(
+        margin: const EdgeInsets.only(bottom: 60),
+        child: session.isActive
+            // ─── State 3: Session active → Finalizar Jornada ───
+            ? FloatingActionButton.extended(
+                onPressed: () => _showEndSessionSheet(context, ref),
+                backgroundColor: const Color(0xFFE53935),
+                elevation: 8,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                icon: const Icon(Icons.stop_circle_outlined, color: Colors.white),
+                label: const Text(
+                  'Finalizar Jornada',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                ),
+              )
+            : !qrDownloaded
+                // ─── State 1: QR not downloaded → Generar QR ───
+                ? FloatingActionButton.extended(
+                    onPressed: () => context.push('/generate-qr'),
+                    backgroundColor: AppColors.charcoal,
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    icon: const Icon(Icons.qr_code, color: Colors.white),
+                    label: const Text(
+                      'Generar QR',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                    ),
+                  )
+                // ─── State 2: QR downloaded → ¡Dale Guaya! ───
+                : FloatingActionButton.extended(
+                    onPressed: () {
+                      final user = ref.read(authProvider).state.user;
+                      ref.read(driverSessionProvider).startSession(driverId: user?.id ?? 0);
+                    },
+                    backgroundColor: AppColors.salmon,
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+                    label: const Text(
+                      '¡Dale Guaya!',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5),
+                    ),
+                  ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  void _showEndSessionSheet(BuildContext context, WidgetRef ref) {
+    final session = ref.read(driverSessionProvider).state;
+
+    showAppBottomSheet(
+      context: context,
+      initialSize: 0.35,
+      minSize: 0.25,
+      maxSize: 0.45,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.warning_amber_rounded, size: 48, color: Color(0xFFE53935)),
+            const SizedBox(height: 12),
+            const Text(
+              '¿Finalizar jornada?',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.charcoal),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Pasajeros atendidos: ${session.passengerCount}',
+              style: const TextStyle(fontSize: 15, color: AppColors.grayNeutral),
+            ),
+            const SizedBox(height: 24),
+            GradientButton(
+              label: 'Finalizar',
+              onPressed: () {
+                ref.read(driverSessionProvider).endSession();
+                Navigator.of(context).pop();
+              },
+              colors: const [Color(0xFFE53935), Color(0xFFEF5350)],
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.grayNeutral),
               ),
             ),
           ],

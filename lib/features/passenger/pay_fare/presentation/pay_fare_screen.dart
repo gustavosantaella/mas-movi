@@ -1,16 +1,18 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import '../../../../services/ble/ble_passenger_service.dart';
+import '../../../../services/socket/payment_socket_service.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../shared/widgets/app_bottom_sheet.dart';
 import '../../../../shared/widgets/gradient_button.dart';
+import '../../../auth/providers/auth_provider.dart';
 
-class PayFareScreen extends StatelessWidget {
+class PayFareScreen extends ConsumerWidget {
   const PayFareScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
       body: SafeArea(
@@ -116,7 +118,7 @@ class PayFareScreen extends StatelessWidget {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () => _openScanner(context),
+                        onTap: () => _openScanner(context, ref),
                         borderRadius: BorderRadius.circular(20),
                         child: Container(
                           padding: const EdgeInsets.all(18),
@@ -220,9 +222,13 @@ class PayFareScreen extends StatelessWidget {
     );
   }
 
-  void _openScanner(BuildContext context) {
+  void _openScanner(BuildContext context, WidgetRef ref) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const _QrScannerPage()),
+      MaterialPageRoute(
+        builder: (_) => _QrScannerPage(
+          passengerId: ref.read(authProvider).state.user?.id ?? 0,
+        ),
+      ),
     );
   }
 }
@@ -231,7 +237,8 @@ class PayFareScreen extends StatelessWidget {
 //  QR Scanner Page
 // ═══════════════════════════════════════════════════
 class _QrScannerPage extends StatefulWidget {
-  const _QrScannerPage();
+  final int passengerId;
+  const _QrScannerPage({required this.passengerId});
 
   @override
   State<_QrScannerPage> createState() => _QrScannerPageState();
@@ -279,15 +286,25 @@ class _QrScannerPageState extends State<_QrScannerPage> {
     // Show confirmation sheet
     if (mounted) {
       Navigator.of(context).pop(); // close scanner
-      _showPaymentConfirmation(context, qrData);
+      _showPaymentConfirmation(context, qrData, widget.passengerId);
     }
   }
 
   void _showPaymentConfirmation(
-      BuildContext context, Map<String, dynamic> qrData) {
+      BuildContext context, Map<String, dynamic> qrData, int passengerId) {
     final fare = qrData['fare'] ?? '—';
     final driverId = qrData['driverId'] ?? '—';
     final sessionId = qrData['sessionId']?.toString() ?? '';
+
+    // Connect and notify driver of scan (+1 counter)
+    final socketService = PaymentSocketService();
+    socketService.connect();
+    Future.delayed(const Duration(milliseconds: 500), () {
+      socketService.passengerScan(
+        sessionId: sessionId,
+        passengerId: passengerId,
+      );
+    });
 
     showAppBottomSheet(
       context: context,
@@ -298,6 +315,8 @@ class _QrScannerPageState extends State<_QrScannerPage> {
         fare: fare.toString(),
         driverId: driverId.toString(),
         sessionId: sessionId,
+        passengerId: passengerId,
+        socketService: socketService,
       ),
     );
   }
@@ -461,10 +480,14 @@ class _PaymentConfirmSheet extends StatefulWidget {
   final String fare;
   final String driverId;
   final String sessionId;
+  final int passengerId;
+  final PaymentSocketService socketService;
   const _PaymentConfirmSheet({
     required this.fare,
     required this.driverId,
     required this.sessionId,
+    required this.passengerId,
+    required this.socketService,
   });
 
   @override
@@ -473,22 +496,27 @@ class _PaymentConfirmSheet extends StatefulWidget {
 
 class _PaymentConfirmSheetState extends State<_PaymentConfirmSheet> {
   bool _loading = false;
-  final _bleService = BlePassengerService();
+
+  @override
+  void dispose() {
+    widget.socketService.dispose();
+    super.dispose();
+  }
 
   Future<void> _confirmPayment() async {
     setState(() => _loading = true);
     try {
-      // TODO: Call payment API here
-
-      // Send BLE signal to driver
-      final shortSession = widget.sessionId.length > 8
-          ? widget.sessionId.substring(0, 8)
-          : widget.sessionId;
-
-      await _bleService.sendPaymentSignal(
-        sessionId: shortSession,
-        durationSeconds: 5,
+      // Send payment via WebSocket
+      widget.socketService.passengerPay(
+        sessionId: widget.sessionId,
+        passengerId: widget.passengerId,
+        amount: double.tryParse(widget.fare) ?? 1.50,
+        lat: 0.0,  // TODO: get real location
+        lng: 0.0,  // TODO: get real location
       );
+
+      // Brief delay to let the WS message arrive
+      await Future.delayed(const Duration(milliseconds: 300));
 
       if (mounted) {
         Navigator.of(context).pop();
