@@ -1,0 +1,42 @@
+Analyzing lib...
+
+  error - features\auth\data\auth_repository.dart:2:8 - Target of URI doesn't exist: '../../core/network/api_client.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist. - uri_does_not_exist
+  error - features\auth\data\auth_repository.dart:3:8 - Target of URI doesn't exist: '../user/data/models/user_profile.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist. - uri_does_not_exist
+  error - features\auth\data\auth_repository.dart:6:16 - The method 'ApiClient' isn't defined for the type 'AuthRepository'. Try correcting the name to the name of an existing method, or defining a method named 'ApiClient'. - undefined_method
+  error - features\auth\data\auth_repository.dart:19:18 - Undefined name 'ApiClient'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\data\auth_repository.dart:44:5 - Undefined name 'ApiClient'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\data\auth_repository.dart:62:18 - Undefined name 'ApiClient'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\data\auth_repository.dart:67:10 - The name 'UserProfile' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'UserProfile'. - non_type_as_type_argument
+  error - features\auth\data\auth_repository.dart:72:18 - Undefined name 'ApiClient'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\data\auth_repository.dart:73:12 - Undefined name 'UserProfile'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\data\auth_repository.dart:77:10 - The name 'UserProfile' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'UserProfile'. - non_type_as_type_argument
+  error - features\auth\data\auth_repository.dart:86:18 - Undefined name 'ApiClient'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\data\auth_repository.dart:87:12 - Undefined name 'UserProfile'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\data\auth_repository.dart:97:5 - Undefined name 'ApiClient'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\presentation\forgot_password_screen.dart:79:17 - The named parameter 'onPress' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'onPress'. - undefined_named_parameter
+  error - features\auth\presentation\login_screen.dart:171:17 - The named parameter 'onPress' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'onPress'. - undefined_named_parameter
+  error - features\auth\providers\auth_provider.dart:3:8 - Target of URI doesn't exist: '../../core/network/api_client.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist. - uri_does_not_exist
+  error - features\auth\providers\auth_provider.dart:4:8 - Target of URI doesn't exist: '../../core/storage/secure_storage.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist. - uri_does_not_exist
+  error - features\auth\providers\auth_provider.dart:5:8 - Target of URI doesn't exist: '../auth/data/auth_repository.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist. - uri_does_not_exist
+  error - features\auth\providers\auth_provider.dart:6:8 - Target of URI doesn't exist: '../user/data/models/user_profile.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist. - uri_does_not_exist
+  error - features\auth\providers\auth_provider.dart:11:9 - Undefined class 'UserProfile'. Try changing the name to the name of an existing class, or creating a class with the name 'UserProfile'. - undefined_class
+  error - features\auth\providers\auth_provider.dart:19:38 - Undefined class 'UserProfile'. Try changing the name to the name of an existing class, or creating a class with the name 'UserProfile'. - undefined_class
+  error - features\auth\providers\auth_provider.dart:29:17 - The method 'AuthRepository' isn't defined for the type 'AuthNotifier'. Try correcting the name to the name of an existing method, or defining a method named 'AuthRepository'. - undefined_method
+  error - features\auth\providers\auth_provider.dart:41:27 - Undefined name 'SecureStorage'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\providers\auth_provider.dart:43:9 - The method 'ApiClient' isn't defined for the type 'AuthNotifier'. Try correcting the name to the name of an existing method, or defining a method named 'ApiClient'. - undefined_method
+  error - features\auth\providers\auth_provider.dart:44:30 - Undefined name 'SecureStorage'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\providers\auth_provider.dart:45:9 - Undefined class 'UserProfile'. Try changing the name to the name of an existing class, or creating a class with the name 'UserProfile'. - undefined_class
+  error - features\auth\providers\auth_provider.dart:47:21 - Undefined name 'UserProfile'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\providers\auth_provider.dart:61:5 - The method 'ApiClient' isn't defined for the type 'AuthNotifier'. Try correcting the name to the name of an existing method, or defining a method named 'ApiClient'. - undefined_method
+  error - features\auth\providers\auth_provider.dart:62:11 - Undefined name 'SecureStorage'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\providers\auth_provider.dart:64:5 - Undefined class 'UserProfile'. Try changing the name to the name of an existing class, or creating a class with the name 'UserProfile'. - undefined_class
+  error - features\auth\providers\auth_provider.dart:67:13 - Undefined name 'SecureStorage'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\providers\auth_provider.dart:76:5 - The method 'ApiClient' isn't defined for the type 'AuthNotifier'. Try correcting the name to the name of an existing method, or defining a method named 'ApiClient'. - undefined_method
+  error - features\auth\providers\auth_provider.dart:77:11 - Undefined name 'SecureStorage'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\providers\auth_provider.dart:78:11 - Undefined name 'SecureStorage'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - features\auth\providers\auth_provider.dart:84:19 - Undefined class 'UserProfile'. Try changing the name to the name of an existing class, or creating a class with the name 'UserProfile'. - undefined_class
+  error - features\auth\providers\auth_provider.dart:86:5 - Undefined name 'SecureStorage'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+warning - features\driver\generate_qr\presentation\generate_qr_screen.dart:4:8 - Unused import: '../../../../shared/widgets/screen_layout.dart'. Try removing the import directive. - unused_import
+warning - features\passenger\pay_fare\presentation\pay_fare_screen.dart:3:8 - Unused import: '../../../../shared/widgets/screen_layout.dart'. Try removing the import directive. - unused_import
+
+38 issues found.
