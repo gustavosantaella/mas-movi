@@ -590,20 +590,22 @@ class _TripInfoSheet extends StatelessWidget {
   }
 
   Widget _infoRow(IconData icon, String label, String value, Color iconColor) {
-    return Row(
+     return Row(
       children: [
         Icon(icon, size: 18, color: iconColor),
         const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: TextStyle(fontSize: 11, color: AppColors.grayNeutral.withValues(alpha: 0.8))),
-            const SizedBox(height: 1),
-            Text(value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.charcoal)),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(fontSize: 11, color: AppColors.grayNeutral.withValues(alpha: 0.8))),
+              const SizedBox(height: 1),
+              Text(value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.charcoal)),
+            ],
+          ),
         ),
       ],
     );

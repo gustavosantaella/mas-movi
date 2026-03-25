@@ -8,8 +8,6 @@ import '../../../../services/database/trip_service.dart';
 import '../../../../services/location/location_helper.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/constants.dart';
-import '../../../../shared/widgets/app_bottom_sheet.dart';
-import '../../../../shared/widgets/gradient_button.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../shared/providers/trip_refresh_provider.dart';
 
@@ -43,7 +41,7 @@ class PayFareScreen extends ConsumerWidget {
                   ),
                   const Expanded(
                     child: Text(
-                      'Empezar viaje',
+                      'Pagar pasaje',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 20,
@@ -99,7 +97,7 @@ class PayFareScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   const Text(
-                    'Escanear código QR',
+                    'Escanea y paga',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
@@ -109,7 +107,8 @@ class PayFareScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Apunta al QR del autobús para pagar',
+                    'Apunta al QR del autobús y se paga automáticamente',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.grayNeutral,
@@ -162,7 +161,7 @@ class PayFareScreen extends ConsumerWidget {
                                     ),
                                     SizedBox(height: 3),
                                     Text(
-                                      'Se descontará de tu saldo',
+                                      'Escanea el QR y se paga de una vez',
                                       style: TextStyle(
                                         fontSize: 13,
                                         color: AppColors.grayNeutral,
@@ -239,7 +238,7 @@ class PayFareScreen extends ConsumerWidget {
 }
 
 // ═══════════════════════════════════════════════════
-//  QR Scanner Page
+//  QR Scanner Page — Scan & Auto-Pay
 // ═══════════════════════════════════════════════════
 class _QrScannerPage extends StatefulWidget {
   final int passengerId;
@@ -255,6 +254,7 @@ class _QrScannerPageState extends State<_QrScannerPage> {
     facing: CameraFacing.back,
   );
   bool _scanned = false;
+  bool _processing = false;
 
   @override
   void dispose() {
@@ -301,12 +301,15 @@ class _QrScannerPageState extends State<_QrScannerPage> {
       return;
     }
 
-    // Check driver status before proceeding
-    _checkDriverStatus(driverId, qrData);
+    // Check driver status and auto-pay
+    _checkAndPay(driverId, qrData);
   }
 
-  Future<void> _checkDriverStatus(
+  /// Verify driver is active, then pay immediately.
+  Future<void> _checkAndPay(
       dynamic driverId, Map<String, dynamic> qrData) async {
+    setState(() => _processing = true);
+
     try {
       final response = await Dio().get(
         '$apiBaseUrl/mobility/driver/$driverId/status',
@@ -316,51 +319,8 @@ class _QrScannerPageState extends State<_QrScannerPage> {
       final data = response.data as Map<String, dynamic>;
       final isActive = data['active'] == true;
 
-      if (isActive) {
-        final sessionId = data['sessionId']?.toString() ?? '';
-        // Inject sessionId from server into qrData
-        qrData['sessionId'] = sessionId;
-
-        // Show success dialog
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => AlertDialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
-            icon: const Icon(Icons.directions_bus,
-                size: 48, color: AppColors.successGreen),
-            title: const Text('¡Empecemos el viaje!',
-                style: TextStyle(fontWeight: FontWeight.w800)),
-            content: const Text(
-              'El conductor está activo y listo para recibirte.',
-              textAlign: TextAlign.center,
-            ),
-            actionsAlignment: MainAxisAlignment.center,
-            actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.successGreen,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 32, vertical: 12),
-                ),
-                child: const Text('Continuar',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
-              ),
-            ],
-          ),
-        );
-
-        if (mounted) {
-          Navigator.of(context).pop(); // close scanner
-          _showPaymentConfirmation(context, qrData, widget.passengerId);
-        }
-      } else {
-        // Show inactive dialog
+      if (!isActive) {
+        // Show inactive dialog and go back
         await showDialog(
           context: context,
           barrierDismissible: false,
@@ -397,12 +357,71 @@ class _QrScannerPageState extends State<_QrScannerPage> {
             ],
           ),
         );
+        return;
       }
+
+      // ─── Driver is active → Auto-pay ──────────────────
+      final sessionId = data['sessionId']?.toString() ?? '';
+      final fare = qrData['fare'] ?? 1.50;
+      final amount = fare is num ? fare.toDouble() : (double.tryParse(fare.toString()) ?? 1.50);
+
+      // Get current location
+      final position = await LocationHelper.getCurrentPosition();
+      final lat = position?.latitude ?? 0.0;
+      final lng = position?.longitude ?? 0.0;
+      String? address;
+      if (lat != 0.0 && lng != 0.0) {
+        address = await LocationHelper.getAddress(lat, lng);
+      }
+
+      // 1. Create & complete trip in SQLite
+      final parsedDriverId = driverId is int ? driverId : int.tryParse(driverId.toString());
+      final tripId = await TripService.createTrip(
+        boardingLat: lat,
+        boardingLong: lng,
+        driverId: parsedDriverId,
+        passengerId: widget.passengerId,
+        sessionId: sessionId,
+        directionFrom: address,
+      );
+
+      await TripService.completeTrip(
+        tripId: tripId,
+        landingLat: lat,
+        landingLong: lng,
+        amount: amount,
+        directionTo: address,
+      );
+
+      // 2. Connect WebSocket & emit payment (driver gets +1)
+      final socketService = PaymentSocketService();
+      socketService.connect();
+      await Future.delayed(const Duration(milliseconds: 500));
+      socketService.passengerPay(
+        sessionId: sessionId,
+        passengerId: widget.passengerId,
+        amount: amount,
+        lat: lat,
+        lng: lng,
+      );
+
+      // Brief delay to let the WS message arrive
+      await Future.delayed(const Duration(milliseconds: 300));
+      socketService.dispose();
+
+      if (!mounted) return;
+
+      // 3. Trigger activity list refresh
+      ProviderScope.containerOf(context).read(tripRefreshProvider.notifier).state++;
+
+      // 4. Show success overlay and pop back
+      await _showSuccessOverlay(amount);
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error de conexión: $e'),
+            content: Text('Error al procesar pago: $e'),
             backgroundColor: const Color(0xFFE53935),
           ),
         );
@@ -411,60 +430,19 @@ class _QrScannerPageState extends State<_QrScannerPage> {
     }
   }
 
-  Future<void> _showPaymentConfirmation(
-      BuildContext context, Map<String, dynamic> qrData, int passengerId) async {
-    final fare = qrData['fare'] ?? '—';
-    final driverId = qrData['driverId'];
-    final sessionId = qrData['sessionId']?.toString() ?? '';
-
-    // Get boarding location
-    final position = await LocationHelper.getCurrentPosition();
-    final boardingLat = position?.latitude;
-    final boardingLong = position?.longitude;
-    String? directionFrom;
-    if (boardingLat != null && boardingLong != null) {
-      directionFrom = await LocationHelper.getAddress(boardingLat, boardingLong);
-    }
-
-    // Create trip record with boarding data
-    final tripId = await TripService.createTrip(
-      boardingLat: boardingLat,
-      boardingLong: boardingLong,
-      driverId: driverId is int ? driverId : int.tryParse(driverId.toString()),
-      passengerId: passengerId,
-      sessionId: sessionId,
-      directionFrom: directionFrom,
-    );
-
-    // Trigger activity list refresh
-    ProviderScope.containerOf(context).read(tripRefreshProvider.notifier).state++;
-
-    // Connect and notify driver of scan (+1 counter)
-    final socketService = PaymentSocketService();
-    socketService.connect();
-    Future.delayed(const Duration(milliseconds: 500), () {
-      socketService.passengerScan(
-        sessionId: sessionId,
-        passengerId: passengerId,
-      );
-    });
-
-    if (!mounted) return;
-
-    showAppBottomSheet(
+  /// Full-screen success overlay with animation.
+  Future<void> _showSuccessOverlay(double amount) async {
+    await showDialog(
       context: context,
-      initialSize: 0.45,
-      minSize: 0.35,
-      maxSize: 0.55,
-      child: _PaymentConfirmSheet(
-        fare: fare.toString(),
-        driverId: driverId.toString(),
-        sessionId: sessionId,
-        passengerId: passengerId,
-        socketService: socketService,
-        tripId: tripId,
-      ),
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (_) => _SuccessOverlay(amount: amount),
     );
+
+    // Pop all the way back to passenger home
+    if (mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   @override
@@ -547,7 +525,7 @@ class _QrScannerPageState extends State<_QrScannerPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
-                  'Apunta al código QR del conductor',
+                  'Escanea el QR y se paga automáticamente',
                   style: TextStyle(
                       fontSize: 14,
                       color: Colors.white,
@@ -556,6 +534,29 @@ class _QrScannerPageState extends State<_QrScannerPage> {
               ),
             ),
           ),
+
+          // Processing indicator
+          if (_processing)
+            Container(
+              color: Colors.black.withValues(alpha: 0.6),
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: AppColors.salmon),
+                    SizedBox(height: 16),
+                    Text(
+                      'Procesando pago...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -620,171 +621,114 @@ class _ScanOverlayPainter extends CustomPainter {
 }
 
 // ═══════════════════════════════════════════════════
-//  Payment confirmation bottom sheet
+//  Success Overlay — animated confirmation
 // ═══════════════════════════════════════════════════
-class _PaymentConfirmSheet extends StatefulWidget {
-  final String fare;
-  final String driverId;
-  final String sessionId;
-  final int passengerId;
-  final PaymentSocketService socketService;
-  final int tripId;
-  const _PaymentConfirmSheet({
-    required this.fare,
-    required this.driverId,
-    required this.sessionId,
-    required this.passengerId,
-    required this.socketService,
-    required this.tripId,
-  });
+class _SuccessOverlay extends StatefulWidget {
+  final double amount;
+  const _SuccessOverlay({required this.amount});
 
   @override
-  State<_PaymentConfirmSheet> createState() => _PaymentConfirmSheetState();
+  State<_SuccessOverlay> createState() => _SuccessOverlayState();
 }
 
-class _PaymentConfirmSheetState extends State<_PaymentConfirmSheet> {
-  bool _loading = false;
+class _SuccessOverlayState extends State<_SuccessOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animCtrl;
+  late Animation<double> _scale;
+  late Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _animCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _scale = CurvedAnimation(parent: _animCtrl, curve: Curves.elasticOut);
+    _opacity = CurvedAnimation(parent: _animCtrl, curve: Curves.easeIn);
+    _animCtrl.forward();
+
+    // Auto-dismiss after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
 
   @override
   void dispose() {
-    widget.socketService.dispose();
+    _animCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _confirmPayment() async {
-    setState(() => _loading = true);
-    try {
-      // Get landing location
-      final position = await LocationHelper.getCurrentPosition();
-      final landingLat = position?.latitude ?? 0.0;
-      final landingLong = position?.longitude ?? 0.0;
-      String? directionTo;
-      if (landingLat != 0.0 && landingLong != 0.0) {
-        directionTo = await LocationHelper.getAddress(landingLat, landingLong);
-      }
-
-      final amount = double.tryParse(widget.fare) ?? 1.50;
-
-      // Send payment via WebSocket
-      widget.socketService.passengerPay(
-        sessionId: widget.sessionId,
-        passengerId: widget.passengerId,
-        amount: amount,
-        lat: landingLat,
-        lng: landingLong,
-      );
-
-      // Complete the trip in SQLite
-      await TripService.completeTrip(
-        tripId: widget.tripId,
-        landingLat: landingLat,
-        landingLong: landingLong,
-        amount: amount,
-        directionTo: directionTo,
-      );
-
-      // Brief delay to let the WS message arrive
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      if (mounted) {
-        // Trigger activity list refresh
-        ProviderScope.containerOf(context).read(tripRefreshProvider.notifier).state++;
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Pago realizado con éxito!'),
-            backgroundColor: AppColors.successGreen,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(e.toString()),
-              backgroundColor: AppColors.salmon),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 8),
-          Container(
-            width: 64,
-            height: 64,
+    return FadeTransition(
+      opacity: _opacity,
+      child: Center(
+        child: ScaleTransition(
+          scale: _scale,
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
             decoration: BoxDecoration(
-              color: AppColors.successGreen.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.successGreen.withValues(alpha: 0.3),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-            child: const Icon(Icons.check_circle_outline,
-                size: 32, color: AppColors.successGreen),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Confirmar pago',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.charcoal),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '¿Deseas pagar este pasaje?',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontSize: 14, color: AppColors.grayNeutral, height: 1.4),
-          ),
-          const SizedBox(height: 20),
-
-          // Fare card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.bgLightGray,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.borderLightGray),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Monto:', style: TextStyle(fontSize: 15, color: AppColors.grayNeutral)),
+                // Check icon
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.successGreen.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    size: 52,
+                    color: AppColors.successGreen,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  '¡Pago exitoso!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.charcoal,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Text(
-                  'Bs. ${widget.fare}',
+                  'Bs. ${widget.amount.toStringAsFixed(2)}',
                   style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.charcoal),
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.successGreen,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Tu pasaje ha sido pagado',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.grayNeutral,
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 20),
-
-          GradientButton(
-            label: 'Confirmar pago',
-            onPressed: _confirmPayment,
-            loading: _loading,
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.grayNeutral)),
-          ),
-          const SizedBox(height: 8),
-        ],
+        ),
       ),
     );
   }

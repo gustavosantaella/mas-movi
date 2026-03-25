@@ -303,22 +303,17 @@ class GenerateQrScreen extends ConsumerWidget {
                             const _InstructionStep(
                               number: '1',
                               color: AppColors.salmon,
-                              text: 'Descarga el Código QR',
+                              text: 'Descarga el Código QR e imprímelo',
                             ),
                             const _InstructionStep(
                               number: '2',
                               color: Color(0xFF7C5CFC),
-                              text: 'Pégalo en una parte visible para que el pasajero pueda escanear',
+                              text: 'Pégalo en una parte visible de tu unidad',
                             ),
                             const _InstructionStep(
                               number: '3',
                               color: AppColors.successGreen,
-                              text: 'El pasajero escaneará el QR y se actualizará la app con un nuevo abordaje',
-                            ),
-                            const _InstructionStep(
-                              number: '4',
-                              color: Color(0xFFF5A623),
-                              text: 'Cuando el pasajero se baje, oprimirá el botón Pagar y te llegarán tus churupitos 💰',
+                              text: 'El pasajero escanea y se paga automáticamente. Te llega la alerta y sube el contador 💰',
                               isLast: true,
                             ),
                           ],

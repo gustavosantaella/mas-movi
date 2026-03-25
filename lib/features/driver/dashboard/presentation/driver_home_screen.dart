@@ -141,7 +141,10 @@ class DriverHomeScreen extends ConsumerWidget {
                 : FloatingActionButton.extended(
                     onPressed: () {
                       final user = ref.read(authProvider).state.user;
-                      ref.read(driverSessionProvider).startSession(driverId: user?.id ?? 0);
+                      ref.read(driverSessionProvider).startSession(
+                        driverId: user?.id ?? 0,
+                        container: ProviderScope.containerOf(context),
+                      );
                     },
                     backgroundColor: AppColors.salmon,
                     elevation: 8,
