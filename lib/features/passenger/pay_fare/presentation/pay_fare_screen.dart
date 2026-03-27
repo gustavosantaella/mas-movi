@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -7,7 +6,7 @@ import '../../../../services/socket/payment_socket_service.dart';
 import '../../../../services/database/trip_service.dart';
 import '../../../../services/location/location_helper.dart';
 import '../../../../core/theme/colors.dart';
-import '../../../../core/constants.dart';
+
 import '../../../auth/providers/auth_provider.dart';
 import '../../../shared/providers/trip_refresh_provider.dart';
 
@@ -305,63 +304,14 @@ class _QrScannerPageState extends State<_QrScannerPage> {
     _checkAndPay(driverId, qrData);
   }
 
-  /// Verify driver is active, then pay immediately.
+  /// Pay immediately — no driver-active check required.
   Future<void> _checkAndPay(
       dynamic driverId, Map<String, dynamic> qrData) async {
     setState(() => _processing = true);
 
     try {
-      final response = await Dio().get(
-        '$apiBaseUrl/mobility/driver/$driverId/status',
-      );
-
-      if (!mounted) return;
-      final data = response.data as Map<String, dynamic>;
-      final isActive = data['active'] == true;
-
-      if (!isActive) {
-        // Show inactive dialog and go back
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => AlertDialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
-            icon: const Icon(Icons.error_outline,
-                size: 48, color: Color(0xFFE53935)),
-            title: const Text('Conductor inactivo',
-                style: TextStyle(fontWeight: FontWeight.w800)),
-            content: const Text(
-              'Este conductor no está en servicio en este momento. '
-              'Intenta de nuevo o toma otra unidad.',
-              textAlign: TextAlign.center,
-            ),
-            actionsAlignment: MainAxisAlignment.center,
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // close dialog
-                  if (mounted) Navigator.of(context).pop(); // close scanner
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE53935),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 32, vertical: 12),
-                ),
-                child: const Text('Entendido',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
-
-      // ─── Driver is active → Auto-pay ──────────────────
-      final sessionId = data['sessionId']?.toString() ?? '';
+      // Use driverId as the session room for fire-and-forget WS notification
+      final sessionId = driverId.toString();
       final fare = qrData['fare'] ?? 1.50;
       final amount = fare is num ? fare.toDouble() : (double.tryParse(fare.toString()) ?? 1.50);
 
@@ -393,21 +343,23 @@ class _QrScannerPageState extends State<_QrScannerPage> {
         directionTo: address,
       );
 
-      // 2. Connect WebSocket & emit payment (driver gets +1)
-      final socketService = PaymentSocketService();
-      socketService.connect();
-      await Future.delayed(const Duration(milliseconds: 500));
-      socketService.passengerPay(
-        sessionId: sessionId,
-        passengerId: widget.passengerId,
-        amount: amount,
-        lat: lat,
-        lng: lng,
-      );
-
-      // Brief delay to let the WS message arrive
-      await Future.delayed(const Duration(milliseconds: 300));
-      socketService.dispose();
+      // 2. Fire-and-forget WebSocket notification (driver may or may not be online)
+      try {
+        final socketService = PaymentSocketService();
+        socketService.connect();
+        await Future.delayed(const Duration(milliseconds: 500));
+        socketService.passengerPay(
+          sessionId: sessionId,
+          passengerId: widget.passengerId,
+          amount: amount,
+          lat: lat,
+          lng: lng,
+        );
+        await Future.delayed(const Duration(milliseconds: 300));
+        socketService.dispose();
+      } catch (_) {
+        // Best-effort — driver doesn't need to be online
+      }
 
       if (!mounted) return;
 
