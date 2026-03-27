@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../services/socket/payment_socket_service.dart';
 import '../../../../services/database/trip_service.dart';
+import '../../../../services/trip/trip_repository.dart';
 import '../../../../services/location/location_helper.dart';
 import '../../../../core/theme/colors.dart';
+
 
 import '../../../auth/providers/auth_provider.dart';
 import '../../../shared/providers/trip_refresh_provider.dart';
@@ -326,6 +328,8 @@ class _QrScannerPageState extends State<_QrScannerPage> {
 
       // 1. Create & complete trip in SQLite
       final parsedDriverId = driverId is int ? driverId : int.tryParse(driverId.toString());
+      final now = DateTime.now();
+      
       final tripId = await TripService.createTrip(
         boardingLat: lat,
         boardingLong: lng,
@@ -342,6 +346,28 @@ class _QrScannerPageState extends State<_QrScannerPage> {
         amount: amount,
         directionTo: address,
       );
+
+      // 1b. Save trip to backend
+      try {
+        final tripRepo = TripRepository();
+        tripRepo.saveTrip(
+          boardingLat: lat,
+          boardingLong: lng,
+          landingLat: lat,
+          landingLong: lng,
+          driverId: parsedDriverId,
+          passengerId: widget.passengerId,
+          sessionId: sessionId,
+          amount: amount,
+          directionFrom: address,
+          directionTo: address,
+          status: 'completed',
+          boardedAt: now,
+          landedAt: now,
+        );
+      } catch (e) {
+        // Silently fail to not break the successful payment UX
+      }
 
       // 2. Fire-and-forget WebSocket notification (driver may or may not be online)
       try {
