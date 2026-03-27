@@ -6,6 +6,7 @@ import '../../../../shared/widgets/recent_trips_section.dart';
 import '../../../shared/profile/presentation/profile_screen.dart';
 import '../../../shared/providers/settings_provider.dart';
 import '../../../shared/providers/trip_refresh_provider.dart';
+import '../../../../features/auth/providers/auth_provider.dart';
 
 class DriverHomeScreen extends ConsumerWidget {
   const DriverHomeScreen({super.key});
@@ -14,6 +15,10 @@ class DriverHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final qrDownloaded = settings.qrDownloaded;
+    final authState = ref.watch(authProvider).state;
+    final user = authState.user;
+    final balance = user?.balance ?? 0.0;
+    // debugPrint('USER: ${user?.id}, BALANCE: $balance');
 
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
@@ -21,6 +26,7 @@ class DriverHomeScreen extends ConsumerWidget {
         child: RefreshIndicator(
           color: AppColors.salmon,
           onRefresh: () async {
+            await ref.read(authProvider.notifier).refreshProfile();
             ref.read(tripRefreshProvider.notifier).state++;
           },
           child: SingleChildScrollView(
@@ -64,8 +70,8 @@ class DriverHomeScreen extends ConsumerWidget {
                   Text('Saldo disponible',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.6))),
                   const SizedBox(height: 6),
-                  const Text('Bs. 0,00',
-                      style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: Colors.white)),
+                  Text('Bs. ${balance.toStringAsFixed(2)}',
+                      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: Colors.white)),
                   const SizedBox(height: 16),
                   Row(
                     children: [

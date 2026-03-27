@@ -82,6 +82,14 @@ class AuthNotifier extends ChangeNotifier {
     SecureStorage.setCachedProfile(user.toJson());
     notifyListeners();
   }
+
+  Future<void> refreshProfile() async {
+    if (_state.token == null) return;
+    try {
+      final profile = await _repo.getProfile(_state.token!);
+      updateUser(profile);
+    } catch (_) {}
+  }
 }
 
 final authProvider = ChangeNotifierProvider<AuthNotifier>((ref) {

@@ -10,6 +10,7 @@ class UserProfile {
   final bool emailConfirmed;
   final bool entityConfirmed;
   final int status;
+  final double balance;
   final String createdAt;
 
   const UserProfile({
@@ -24,6 +25,7 @@ class UserProfile {
     required this.emailConfirmed,
     required this.entityConfirmed,
     required this.status,
+    required this.balance,
     required this.createdAt,
   });
 
@@ -41,6 +43,7 @@ class UserProfile {
         emailConfirmed: json['emailConfirmed'] as bool? ?? false,
         entityConfirmed: json['entityConfirmed'] as bool? ?? false,
         status: json['status'] as int? ?? 0,
+        balance: double.tryParse(json['balance']?.toString() ?? '0') ?? 0.0,
         createdAt: json['createdAt'] as String? ?? '',
       );
 
@@ -56,6 +59,7 @@ class UserProfile {
         'emailConfirmed': emailConfirmed,
         'entityConfirmed': entityConfirmed,
         'status': status,
+        'balance': balance,
         'createdAt': createdAt,
       };
 }

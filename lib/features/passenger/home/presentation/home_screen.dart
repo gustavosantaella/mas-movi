@@ -5,13 +5,16 @@ import '../../../../core/theme/colors.dart';
 import '../../../../shared/widgets/recent_trips_section.dart';
 import '../../../shared/profile/presentation/profile_screen.dart';
 import '../../../shared/providers/trip_refresh_provider.dart';
+import '../../../auth/providers/auth_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // final user = ref.watch(authProvider).state.user; // TODO: wire real balance
+    final authState = ref.watch(authProvider).state;
+    final user = authState.user;
+    final balance = user?.balance ?? 0.0;
 
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
@@ -20,6 +23,7 @@ class HomeScreen extends ConsumerWidget {
         child: RefreshIndicator(
           color: AppColors.salmon,
           onRefresh: () async {
+            await ref.read(authProvider.notifier).refreshProfile();
             ref.read(tripRefreshProvider.notifier).state++;
           },
           child: SingleChildScrollView(
@@ -108,7 +112,7 @@ class HomeScreen extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Row(
+                            Row(
                               children: [
                                 Text(
                                   'Bs.',
@@ -119,8 +123,8 @@ class HomeScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 Text(
-                                  '45.80',
-                                  style: TextStyle(
+                                  balance.toStringAsFixed(2),
+                                  style: const TextStyle(
                                     fontSize: 38,
                                     fontWeight: FontWeight.w900,
                                     color: Colors.white,
