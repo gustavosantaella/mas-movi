@@ -11,7 +11,7 @@ class AuthRepository {
     bool rememberPassword = false,
   }) async {
     final response = await _api.dio.post(
-      '/auth/auth/login',
+      '/mobility/auth/login',
       data: {
         'email': email,
         'password': password,
@@ -33,7 +33,7 @@ class AuthRepository {
     String? sex,
   }) async {
     final response = await _api.dio.post(
-      '/auth/register',
+      '/mobility/auth/register',
       data: {
         'email': email,
         'password': password,
@@ -66,10 +66,7 @@ class AuthRepository {
   }) async {
     final response = await _api.dio.post(
       '/auth/auth/change-password',
-      data: {
-        'currentPassword': currentPassword,
-        'newPassword': newPassword,
-      },
+      data: {'currentPassword': currentPassword, 'newPassword': newPassword},
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
     ApiClient.parseResponse(response);
