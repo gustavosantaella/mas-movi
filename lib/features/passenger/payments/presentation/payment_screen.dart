@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../shared/widgets/screen_layout.dart';
+import './send_fare_screen.dart';
+import './transactions_history_screen.dart';
 
 class PaymentScreen extends StatelessWidget {
   const PaymentScreen({super.key});
@@ -16,19 +18,29 @@ class PaymentScreen extends StatelessWidget {
             const ScreenHeader(title: 'Pagos'),
             const SizedBox(height: 20),
             _PaymentOption(
-              icon: Icons.qr_code,
-              title: 'Escanear código QR',
-              desc: 'Paga tu pasaje escaneando el QR del autobús',
+              icon: Icons.send_rounded,
+              title: 'Enviar Pasaje',
+              desc: 'Envía saldo a otro usuario de Guayaba',
               color: AppColors.salmon,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SendFareScreen()),
+                );
+              },
             ),
             const SizedBox(height: 12),
             _PaymentOption(
-              icon: Icons.account_balance_wallet,
-              title: 'Mi billetera',
-              desc: 'Consulta tu saldo y transacciones',
-              color: AppColors.primary,
-              onTap: () {},
+              icon: Icons.history,
+              title: 'Ver transacciones',
+              desc: 'Consulta el historial de tus movimientos',
+              color: AppColors.info,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TransactionsHistoryScreen()),
+                );
+              },
             ),
           ],
         ),
