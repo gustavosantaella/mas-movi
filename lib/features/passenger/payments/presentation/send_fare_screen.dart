@@ -337,51 +337,47 @@ class _SendFareScreenState extends State<SendFareScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Buscar por:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.charcoal)),
-          Row(
-            children: [
-              Expanded(
-                child: RadioListTile<String>(
-                  title: const Text('Correo', style: TextStyle(fontSize: 12)),
-                  value: 'email',
-                  groupValue: _searchBy,
-                  activeColor: AppColors.salmon,
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (val) => setState(() {
-                    _searchBy = val!;
-                    _identifierController.clear();
-                  }),
-                ),
-              ),
-              Expanded(
-                child: RadioListTile<String>(
-                  title: const Text('Teléfono', style: TextStyle(fontSize: 12)),
-                  value: 'phone',
-                  groupValue: _searchBy,
-                  activeColor: AppColors.salmon,
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (val) => setState(() {
-                    _searchBy = val!;
-                    _identifierController.clear();
-                  }),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _identifierController,
-            keyboardType: _searchBy == 'email' ? TextInputType.emailAddress : TextInputType.phone,
-            decoration: InputDecoration(
-              hintText: _searchBy == 'email' ? 'ejemplo@correo.com' : 'Número de teléfono',
-              filled: true,
-              fillColor: AppColors.bgLightGray,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
-              ),
-              prefixIcon: Icon(_searchBy == 'email' ? Icons.email_outlined : Icons.phone_android_outlined),
+          const SizedBox(height: 12),
+          
+          // Segmented Search Selector
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppColors.bgLightGray,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                _buildSearchByItem('email', 'Correo', Icons.email_outlined),
+                _buildSearchByItem('phone', 'Teléfono', Icons.phone_android_outlined),
+              ],
             ),
           ),
+          
+          const SizedBox(height: 24),
+          
+          AnimatedSwitcher(
+            duration: 200.ms,
+            child: TextField(
+              key: ValueKey(_searchBy),
+              controller: _identifierController,
+              keyboardType: _searchBy == 'email' ? TextInputType.emailAddress : TextInputType.phone,
+              decoration: InputDecoration(
+                hintText: _searchBy == 'email' ? 'ejemplo@correo.com' : 'Número de teléfono',
+                filled: true,
+                fillColor: AppColors.bgLightGray,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: Icon(
+                  _searchBy == 'email' ? Icons.email_outlined : Icons.phone_android_outlined,
+                  color: AppColors.salmon,
+                ),
+              ),
+            ),
+          ),
+          
           const SizedBox(height: 16),
           SwitchListTile(
             title: const Text('¿Afiliar usuario?', style: TextStyle(fontSize: 14)),
@@ -404,6 +400,51 @@ class _SendFareScreenState extends State<SendFareScreen> {
         ],
       ),
     ).animate().fadeIn();
+  }
+
+  Widget _buildSearchByItem(String value, String label, IconData icon) {
+    bool active = _searchBy == value;
+    return Expanded(
+      child: Material(
+        color: active ? Colors.white : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            if (_searchBy != value) {
+              setState(() {
+                _searchBy = value;
+                _identifierController.clear();
+                _error = null;
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              boxShadow: active ? [
+                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)
+              ] : null,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 16, color: active ? AppColors.salmon : AppColors.grayNeutral),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: active ? FontWeight.bold : FontWeight.w500,
+                    color: active ? AppColors.charcoal : AppColors.grayNeutral,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildAffiliatesList() {
