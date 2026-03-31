@@ -14,7 +14,7 @@ class SendFareScreen extends StatefulWidget {
 
 class _SendFareScreenState extends State<SendFareScreen> {
   int _step = 1; // 1: Search, 2: Amount, 3: Success
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _identifierController = TextEditingController();
   String _amount = '0';
   bool _loading = false;
   bool _affiliate = false;
@@ -22,12 +22,13 @@ class _SendFareScreenState extends State<SendFareScreen> {
   
   // Tabs & Affiliates
   int _tabIndex = 0; // 0: Sin afiliar, 1: Afiliado
+  String _searchBy = 'email'; // 'email' or 'phone'
   List<dynamic> _affiliates = [];
   bool _loadingAffiliates = false;
   
   // Recipient data
   String? _recipientName;
-  String? _recipientEmail;
+  String? _recipientIdentifier;
 
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _SendFareScreenState extends State<SendFareScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     super.dispose();
   }
 
@@ -61,22 +62,23 @@ class _SendFareScreenState extends State<SendFareScreen> {
   }
 
   Future<void> _verifyRecipient() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) return;
+    final identifier = _identifierController.text.trim();
+    if (identifier.isEmpty) return;
 
     setState(() { _loading = true; _error = null; });
 
     try {
       final api = ApiClient();
       final response = await api.dio.post('/mobility/transactions/verify-recipient', data: {
-        'email': email,
+        'identifier': identifier,
+        'searchBy': _searchBy,
       });
       
       final data = ApiClient.parseResponse(response);
       if (mounted) {
         setState(() {
           _recipientName = data['data']?['name'];
-          _recipientEmail = email;
+          _recipientIdentifier = identifier;
           _step = 2;
           _loading = false;
         });
@@ -140,8 +142,9 @@ class _SendFareScreenState extends State<SendFareScreen> {
     try {
       final api = ApiClient();
       await api.dio.post('/mobility/transactions/transfer', data: {
-        'email': _recipientEmail,
+        'identifier': _recipientIdentifier,
         'amount': amt,
+        'searchBy': _searchBy,
       });
 
       if (mounted) {
@@ -153,7 +156,8 @@ class _SendFareScreenState extends State<SendFareScreen> {
         // ─── Affiliate if requested ───
         if (_affiliate) {
           api.dio.post('/mobility/transactions/affiliate', data: {
-            'email': _recipientEmail,
+            'identifier': _recipientIdentifier,
+            'searchBy': _searchBy,
           }).then((_) => null).catchError((e) {
             debugPrint('Error affiliating: $e');
             return null;
@@ -332,18 +336,50 @@ class _SendFareScreenState extends State<SendFareScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text('Buscar por:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.charcoal)),
+          Row(
+            children: [
+              Expanded(
+                child: RadioListTile<String>(
+                  title: const Text('Correo', style: TextStyle(fontSize: 12)),
+                  value: 'email',
+                  groupValue: _searchBy,
+                  activeColor: AppColors.salmon,
+                  contentPadding: EdgeInsets.zero,
+                  onChanged: (val) => setState(() {
+                    _searchBy = val!;
+                    _identifierController.clear();
+                  }),
+                ),
+              ),
+              Expanded(
+                child: RadioListTile<String>(
+                  title: const Text('Teléfono', style: TextStyle(fontSize: 12)),
+                  value: 'phone',
+                  groupValue: _searchBy,
+                  activeColor: AppColors.salmon,
+                  contentPadding: EdgeInsets.zero,
+                  onChanged: (val) => setState(() {
+                    _searchBy = val!;
+                    _identifierController.clear();
+                  }),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           TextField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
+            controller: _identifierController,
+            keyboardType: _searchBy == 'email' ? TextInputType.emailAddress : TextInputType.phone,
             decoration: InputDecoration(
-              hintText: 'ejemplo@correo.com',
+              hintText: _searchBy == 'email' ? 'ejemplo@correo.com' : 'Número de teléfono',
               filled: true,
               fillColor: AppColors.bgLightGray,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
               ),
-              prefixIcon: const Icon(Icons.email_outlined),
+              prefixIcon: Icon(_searchBy == 'email' ? Icons.email_outlined : Icons.phone_android_outlined),
             ),
           ),
           const SizedBox(height: 16),
@@ -404,8 +440,9 @@ class _SendFareScreenState extends State<SendFareScreen> {
           child: ListTile(
             onTap: () {
               setState(() {
-                _recipientEmail = a['email'];
+                _recipientIdentifier = a['email'] ?? a['phone'];
                 _recipientName = a['alias'] ?? '${a['firstName']} ${a['lastName']}';
+                _searchBy = a['email'] != null ? 'email' : 'phone';
                 _step = 2;
                 _amount = '0';
               });
@@ -447,7 +484,7 @@ class _SendFareScreenState extends State<SendFareScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(_recipientName ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.salmon)),
-                    Text(_recipientEmail ?? '', style: const TextStyle(fontSize: 12, color: AppColors.grayNeutral)),
+                    Text(_recipientIdentifier ?? '', style: const TextStyle(fontSize: 12, color: AppColors.grayNeutral)),
                   ],
                 ),
               ),
