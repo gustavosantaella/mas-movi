@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../shared/widgets/screen_layout.dart';
-import './send_fare_screen.dart';
-import './transactions_history_screen.dart';
 
 class PaymentScreen extends StatelessWidget {
   const PaymentScreen({super.key});
@@ -22,12 +21,15 @@ class PaymentScreen extends StatelessWidget {
               title: 'Enviar Pasaje',
               desc: 'Envía saldo a otro usuario de Guayaba',
               color: AppColors.salmon,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SendFareScreen()),
-                );
-              },
+              onTap: () => context.push('/pay-fare'),
+            ),
+            const SizedBox(height: 12),
+            _PaymentOption(
+              icon: Icons.people_alt_rounded,
+              title: 'Mis Afiliados',
+              desc: 'Gestiona tus contactos frecuentes',
+              color: AppColors.successGreen,
+              onTap: () => context.push('/affiliates'),
             ),
             const SizedBox(height: 12),
             _PaymentOption(
@@ -35,12 +37,7 @@ class PaymentScreen extends StatelessWidget {
               title: 'Ver transacciones',
               desc: 'Consulta el historial de tus movimientos',
               color: AppColors.info,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const TransactionsHistoryScreen()),
-                );
-              },
+              onTap: () => context.push('/payments/history'),
             ),
           ],
         ),

@@ -24,6 +24,7 @@ class _PassengerShellState extends State<PassengerShell> {
     _TabItem('/home', Icons.home_outlined, Icons.home, 'Inicio'),
     _TabItem('/payments', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, 'Pagos'),
     _TabItem('/pay-fare', Icons.qr_code, Icons.qr_code, ''), // placeholder, overridden by center
+    _TabItem('/ai-route', Icons.auto_awesome_outlined, Icons.auto_awesome, 'GuayabIA'),
     _TabItem('/rewards', Icons.show_chart, Icons.show_chart, 'Recompensas'),
   ];
 
@@ -87,8 +88,8 @@ class _PassengerShellState extends State<PassengerShell> {
                   }
                 },
                 child: Container(
-                  width: 56,
-                  height: 56,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     color: hasActiveTrip ? AppColors.successGreen : AppColors.salmon,
                     shape: BoxShape.circle,
@@ -102,9 +103,9 @@ class _PassengerShellState extends State<PassengerShell> {
                     ],
                   ),
                   child: Icon(
-                    hasActiveTrip ? Icons.attach_money : Icons.qr_code,
+                    hasActiveTrip ? Icons.attach_money : Icons.qr_code_scanner,
                     color: Colors.white,
-                    size: 26,
+                    size: 24,
                   ),
                 ),
               );
@@ -120,14 +121,14 @@ class _PassengerShellState extends State<PassengerShell> {
                   children: [
                     Icon(
                       isActive ? tab.activeIcon : tab.icon,
-                      size: 24,
+                      size: 22,
                       color: isActive ? AppColors.salmon : AppColors.grayNeutral,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       tab.label,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: isActive ? AppColors.salmon : AppColors.grayNeutral,
                       ),
