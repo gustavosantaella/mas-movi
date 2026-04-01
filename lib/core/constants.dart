@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 /// ─── Network ────────────────────────────────────────
 const _prodUrl = 'https://movimas.com';
-const _lanIp = '172.16.20.159';
+const _lanIp = '172.16.20.109';
 const _proxyPort = 4500;
 const _emulatorHost = '10.0.2.2'; // Android emulator → host loopback
 const _proxyPath = '/proxy';

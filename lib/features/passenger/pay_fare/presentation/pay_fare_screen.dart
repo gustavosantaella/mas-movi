@@ -350,7 +350,7 @@ class _QrScannerPageState extends State<_QrScannerPage> {
       // 1b. Save trip to backend
       try {
         final tripRepo = TripRepository();
-        tripRepo.saveTrip(
+        await tripRepo.saveTrip(
           boardingLat: lat,
           boardingLong: lng,
           landingLat: lat,

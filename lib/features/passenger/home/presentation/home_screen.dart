@@ -196,10 +196,9 @@ class HomeScreen extends ConsumerWidget {
 
               const SizedBox(height: 28),
 
-              // ─── Recent Activity from SQLite ─────────
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
-                child: RecentTripsSection(),
+                child: RecentTripsSection(role: 'passenger'),
               ),
 
               // Bottom padding for tab bar

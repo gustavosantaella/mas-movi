@@ -104,7 +104,7 @@ class DriverHomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 24),
-            const RecentTripsSection(),
+            const RecentTripsSection(role: 'driver'),
           ],
         ),
       ),

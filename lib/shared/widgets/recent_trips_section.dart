@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/colors.dart';
 import '../../../features/shared/providers/trip_refresh_provider.dart';
+import '../../../services/trip/trip_repository.dart';
 import '../../../services/database/trip_service.dart';
 import '../../../services/location/location_helper.dart';
 import '../../../services/socket/payment_socket_service.dart';
@@ -12,7 +13,8 @@ import 'gradient_button.dart';
 /// Reusable widget that shows recent trips from SQLite.
 /// Active trips are tappable → opens a payment bottom sheet.
 class RecentTripsSection extends ConsumerStatefulWidget {
-  const RecentTripsSection({super.key});
+  final String? role;
+  const RecentTripsSection({super.key, this.role});
 
   @override
   ConsumerState<RecentTripsSection> createState() => RecentTripsSectionState();
@@ -32,7 +34,8 @@ class RecentTripsSectionState extends ConsumerState<RecentTripsSection> {
   Future<void> refresh() => _loadTrips();
 
   Future<void> _loadTrips() async {
-    final trips = await TripService.getTrips(limit: 10);
+    // We try to fetch from backend first, fallback to empty (or we could keep local as fallback)
+    final trips = await TripRepository().getRecentTrips(role: widget.role);
     if (mounted) setState(() { _trips = trips; _loading = false; });
   }
 
@@ -253,7 +256,7 @@ class RecentTripsSectionState extends ConsumerState<RecentTripsSection> {
             children: [
               if (amount != null)
                 Text(
-                  'Bs. ${(amount as num).toStringAsFixed(2)}',
+                  'Bs. ${(_parseAmount(amount)).toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
@@ -571,7 +574,7 @@ class _TripInfoSheet extends StatelessWidget {
                 children: [
                   const Text('Monto pagado',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.charcoal)),
-                  Text('Bs. ${(amount as num).toStringAsFixed(2)}',
+                  Text('Bs. ${(_parseAmount(amount)).toStringAsFixed(2)}',
                       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.successGreen)),
                 ],
               ),
@@ -610,4 +613,11 @@ class _TripInfoSheet extends StatelessWidget {
       ],
     );
   }
+}
+
+double _parseAmount(dynamic amount) {
+  if (amount == null) return 0.0;
+  if (amount is num) return amount.toDouble();
+  if (amount is String) return double.tryParse(amount) ?? 0.0;
+  return 0.0;
 }
