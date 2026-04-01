@@ -20,6 +20,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   final _passwordCtrl = TextEditingController();
   bool _rememberMe = false;
   bool _loading = false;
+  int _loginMethod = 0; // 0: Email, 1: Phone
   late AnimationController _logoAnim;
   late Animation<double> _logoScale;
   late Animation<double> _logoOpacity;
@@ -45,12 +46,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     super.dispose();
   }
 
-  bool get _isValidEmail => RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(_emailCtrl.text);
+  bool get _isValidIdentifier {
+    final text = _emailCtrl.text.trim();
+    if (_loginMethod == 0) {
+      return RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(text);
+    } else {
+      return RegExp(r'^\+?[0-9]{10,15}$').hasMatch(text);
+    }
+  }
   bool get _isValidPassword {
     final p = _passwordCtrl.text;
     return p.length >= 8 && RegExp(r'[A-Z]').hasMatch(p) && RegExp(r'[^A-Za-z0-9]').hasMatch(p);
   }
-  bool get _canSubmit => _isValidEmail && _isValidPassword;
+  bool get _canSubmit => _isValidIdentifier && _isValidPassword;
 
   Future<void> _handleLogin() async {
     setState(() => _loading = true);
@@ -105,12 +113,90 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 style: TextStyle(fontSize: 14, color: AppColors.grayNeutral),
               ),
               const SizedBox(height: 30),
-              // ─── Email ─────────────
+              // ─── Login Method Selector ───────
+              Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.bgLightGray,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.borderLightGray),
+                ),
+                child: Stack(
+                  children: [
+                    AnimatedAlign(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      alignment: _loginMethod == 0 ? Alignment.centerLeft : Alignment.centerRight,
+                      child: FractionallySizedBox(
+                        widthFactor: 0.5,
+                        child: Container(
+                          margin: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() {
+                              _loginMethod = 0;
+                              _emailCtrl.clear();
+                            }),
+                            behavior: HitTestBehavior.opaque,
+                            child: Center(
+                              child: Text(
+                                'Correo',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: _loginMethod == 0 ? FontWeight.w700 : FontWeight.w600,
+                                  color: _loginMethod == 0 ? AppColors.salmon : AppColors.grayNeutral,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() {
+                              _loginMethod = 1;
+                              _emailCtrl.clear();
+                            }),
+                            behavior: HitTestBehavior.opaque,
+                            child: Center(
+                              child: Text(
+                                'Teléfono',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: _loginMethod == 1 ? FontWeight.w700 : FontWeight.w600,
+                                  color: _loginMethod == 1 ? AppColors.salmon : AppColors.grayNeutral,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // ─── Input Field ────────────────
               AppInput(
-                label: 'Correo electrónico',
-                icon: Icons.mail_outline,
-                placeholder: 'tu@correo.com',
-                type: 'email',
+                label: _loginMethod == 0 ? 'Correo electrónico' : 'Número de teléfono',
+                icon: _loginMethod == 0 ? Icons.mail_outline : Icons.phone_android_outlined,
+                placeholder: _loginMethod == 0 ? 'tu@correo.com' : '04121234567',
+                type: _loginMethod == 0 ? 'email' : 'number',
                 controller: _emailCtrl,
                 onChanged: (_) => setState(() {}),
               ),
