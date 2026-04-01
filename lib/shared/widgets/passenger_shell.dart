@@ -24,7 +24,6 @@ class _PassengerShellState extends State<PassengerShell> {
     _TabItem('/home', Icons.home_outlined, Icons.home, 'Inicio'),
     _TabItem('/payments', Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, 'Pagos'),
     _TabItem('/pay-fare', Icons.qr_code, Icons.qr_code, ''), // placeholder, overridden by center
-    _TabItem('/ai-route', Icons.smart_toy_outlined, Icons.smart_toy, 'IA'),
     _TabItem('/rewards', Icons.show_chart, Icons.show_chart, 'Recompensas'),
   ];
 
