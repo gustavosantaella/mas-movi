@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UserRepository } from '@/modules/user/repositories/user.repository.js';
-import { JwtService } from '@/utils/jwt.service.js';
-import { MailtrapService } from '@/utils/mailtrap.service.js';
+import { JwtService } from '@/utils/jwt.service';
+import { MailtrapService } from '@/utils/mailtrap.service';
 import { RegisterDto } from '@/modules/auth/controllers/models/register.dto.js';
-import { WalletService } from '@/modules/wallet/services/wallet.service.js';
+import { WalletService } from '@/modules/wallet/services/wallet.service';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class AuthService {
     rememberPassword: boolean,
   ): Promise<{ token: string }> {
     let user = await this.userRepository.findByEmail(identifier);
-    
+
     if (!user) {
       user = await this.userRepository.findByPhone(identifier);
     }
@@ -61,7 +61,7 @@ export class AuthService {
     const user = await this.userRepository.newUser(dto, hashedPassword);
 
     // Initial Wallet creation
-    await this.walletService.updateBalance(user.id, 0); 
+    await this.walletService.updateBalance(user.id, 0);
 
     // Generate confirmation token & URL
     const confirmToken = this.jwtService.generateToken(
@@ -69,7 +69,7 @@ export class AuthService {
       false,
     );
     let confirmUrl = this.confirmUrl;
-     confirmUrl = `${confirmUrl}token=${confirmToken}`;
+    confirmUrl = `${confirmUrl}token=${confirmToken}`;
 
     // Send confirmation email (non-blocking)
     const roleLabel = dto.userType === 3 ? 'Conductor' : 'Pasajero';

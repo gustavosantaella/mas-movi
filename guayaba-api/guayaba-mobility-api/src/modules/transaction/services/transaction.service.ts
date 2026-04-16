@@ -2,8 +2,8 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TransactionRepository } from '../repositories/transaction.repository.js';
-import { UserService } from '@/modules/user/services/user.service.js';
-import { WalletService } from '@/modules/wallet/services/wallet.service.js';
+import { UserService } from '@/modules/user/services/user.service';
+import { WalletService } from '@/modules/wallet/services/wallet.service';
 import { TransactionType } from '../entities/transaction.entity.js';
 import { TransactionDao } from '../repositories/models/transaction.dao.js';
 
@@ -13,7 +13,7 @@ export class TransactionService {
     private readonly transactionRepository: TransactionRepository,
     private readonly userService: UserService,
     private readonly walletService: WalletService,
-  ) {}
+  ) { }
 
   async findAllByUserId(userId: number): Promise<TransactionDao[]> {
     return this.transactionRepository.findAllByUserId(userId);
@@ -25,13 +25,13 @@ export class TransactionService {
    */
   async transfer(senderId: number, identifier: string, amount: number, extras?: string, searchBy: 'email' | 'phone' = 'email'): Promise<TransactionDao> {
     console.log(`💸 [Transfer] Sender: ${senderId}, Recipient: ${identifier}, Amount: ${amount}, Type: ${searchBy}`);
-    
+
     if (amount <= 0) {
       throw new BadRequestException('El monto debe ser mayor a cero.');
     }
- 
+
     // 1. Find recipient
-    const recipient = searchBy === 'email' 
+    const recipient = searchBy === 'email'
       ? await this.userService.findByEmail(identifier)
       : await this.userService.findByPhone(identifier);
 
@@ -45,7 +45,7 @@ export class TransactionService {
 
     // 2. Check sender balance
     const senderWallet = await this.walletService.findByUserId(senderId);
-    
+
     // Explicit conversion to number in case Postgres decimal returns as string
     const currentBalance = senderWallet ? Number(senderWallet.balance) : 0;
     const transferAmount = Number(amount);

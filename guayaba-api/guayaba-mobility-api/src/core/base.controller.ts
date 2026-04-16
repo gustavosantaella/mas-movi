@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import type { Request, Response } from 'express';
-import { JwtService } from '@/utils/jwt.service.js';
+import { JwtService } from '@/utils/jwt.service';
 
 interface ApiResponse<T = any> {
   success: boolean;

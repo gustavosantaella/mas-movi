@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserService } from '@/modules/user/services/user.service.js';
+import { UserService } from '@/modules/user/services/user.service';
 import { AffiliatedRecipient } from '../entities/affiliated-recipient.entity.js';
 
 @Injectable()
@@ -10,13 +10,13 @@ export class AffiliateService {
     @InjectRepository(AffiliatedRecipient)
     private readonly affiliatedRecipientRepository: Repository<AffiliatedRecipient>,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   /**
    * Affiliate a recipient for future ease of use.
    */
   async affiliate(ownerId: number, identifier: string, alias?: string, searchBy: 'email' | 'phone' = 'email'): Promise<AffiliatedRecipient> {
-    const recipient = searchBy === 'email' 
+    const recipient = searchBy === 'email'
       ? await this.userService.findByEmail(identifier)
       : await this.userService.findByPhone(identifier);
 

@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Headers, Post, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { AuthService } from '@/modules/auth/services/auth.service.js';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import { LoginDto } from '@/modules/auth/controllers/models/login.dto.js';
 import { BaseController } from '@/core/base.controller.js';
 import { RegisterDto } from '@/modules/auth/controllers/models/register.dto.js';
-import { JwtService } from '@/utils/jwt.service.js';
+import { JwtService } from '@/utils/jwt.service';
 
 @Controller('auth')
 export class AuthController extends BaseController {
@@ -210,8 +210,8 @@ export class AuthController extends BaseController {
   <div class="card">
     <div class="logo">🔒</div>
     ${errorMessage
-      ? `<div class="error">${errorMessage}</div>`
-      : `
+        ? `<div class="error">${errorMessage}</div>`
+        : `
     <h1 class="title">Nueva contraseña</h1>
     <p class="subtitle">Crea una nueva contraseña para tu cuenta</p>
     <div id="form-container">

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { BaseController } from '@/core/base.controller.js';
-import { AffiliateService } from '../services/affiliate.service.js';
+import { AffiliateService } from '../services/affiliate.service';
 
 @Controller('affiliates')
 export class AffiliateController extends BaseController {
@@ -41,9 +41,9 @@ export class AffiliateController extends BaseController {
 
     try {
       const affiliation = await this.affiliateService.affiliate(
-        userId, 
-        body.identifier, 
-        body.alias, 
+        userId,
+        body.identifier,
+        body.alias,
         body.searchBy || 'email'
       );
       this.send(res, this.success(affiliation, 'Usuario afiliado con éxito.'));

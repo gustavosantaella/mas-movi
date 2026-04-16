@@ -11,10 +11,10 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { BaseController } from '@/core/base.controller.js';
-import { TripService } from '@/modules/trip/services/trip.service.js';
+import { TripService } from '@/modules/trip/services/trip.service';
 import { CreateTripDto, UpdateTripDto } from '@/modules/trip/controllers/models/trip.dto.js';
-import { UserService } from '@/modules/user/services/user.service.js';
-import { WalletService } from '@/modules/wallet/services/wallet.service.js';
+import { UserService } from '@/modules/user/services/user.service';
+import { WalletService } from '@/modules/wallet/services/wallet.service';
 
 @Controller('payment/trips')
 export class PaymentTripController extends BaseController {
@@ -76,8 +76,8 @@ export class PaymentTripController extends BaseController {
     const driver = await this.userService.findById(data.driverId!);
 
     if (!driver || !driver.driverUuid) {
-       this.send(res, this.error('Conductor no encontrado o sin identificador de movilidad.', 404), 404);
-       return;
+      this.send(res, this.error('Conductor no encontrado o sin identificador de movilidad.', 404), 404);
+      return;
     }
 
     // 3. Create trip

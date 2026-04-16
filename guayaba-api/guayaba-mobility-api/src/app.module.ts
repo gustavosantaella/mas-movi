@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppService } from './app.service.js';
-import { PsqlModule } from '@/core/database/psql/psql.module.js';
-import { PaymentModule } from '@/modules/payment/payment.module.js';
-import { DriverModule } from '@/modules/driver/driver.module.js';
-import { UtilsModule } from '@/utils/utils.module.js';
-import { UserModule } from '@/modules/user/user.module.js';
-import { AuthModule } from '@/modules/auth/auth.module.js';
-import { WalletModule } from '@/modules/wallet/wallet.module.js';
-import { TripModule } from '@/modules/trip/trip.module.js';
-import { TransactionModule } from '@/modules/transaction/transaction.module.js';
-import { AffiliateModule } from '@/modules/affiliate/affiliate.module.js';
+import { AppService } from './app.service';
+import { PsqlModule } from '@/core/database/psql/psql.module';
+import { PaymentModule } from '@/modules/payment/payment.module';
+import { DriverModule } from '@/modules/driver/driver.module';
+import { UtilsModule } from '@/utils/utils.module';
+import { UserModule } from '@/modules/user/user.module';
+import { AuthModule } from '@/modules/auth/auth.module';
+import { WalletModule } from '@/modules/wallet/wallet.module';
+import { TripModule } from '@/modules/trip/trip.module';
+import { TransactionModule } from '@/modules/transaction/transaction.module';
+import { AffiliateModule } from '@/modules/affiliate/affiliate.module';
 
 @Module({
   imports: [
@@ -19,7 +19,7 @@ import { AffiliateModule } from '@/modules/affiliate/affiliate.module.js';
     PsqlModule,
     AuthModule,
     PaymentModule,
-    DriverModule, 
+    DriverModule,
     UserModule,
     WalletModule,
     TripModule,
@@ -29,7 +29,7 @@ import { AffiliateModule } from '@/modules/affiliate/affiliate.module.js';
   controllers: [],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
 
 
 

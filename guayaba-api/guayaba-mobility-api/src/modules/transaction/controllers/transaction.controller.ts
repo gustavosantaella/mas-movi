@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { BaseController } from '@/core/base.controller.js';
-import { TransactionService } from '../services/transaction.service.js';
-import { UserService } from '@/modules/user/services/user.service.js';
+import { TransactionService } from '../services/transaction.service';
+import { UserService } from '@/modules/user/services/user.service';
 import { TransferFareDto } from './models/transaction.dto.js';
 
 @Controller('transactions')
@@ -64,7 +64,7 @@ export class TransactionController extends BaseController {
       throw new BadRequestException('El identificador es obligatorio.');
     }
 
-    const user = body.searchBy === 'email' 
+    const user = body.searchBy === 'email'
       ? await this.userService.findByEmail(body.identifier)
       : await this.userService.findByPhone(body.identifier);
 
@@ -73,9 +73,9 @@ export class TransactionController extends BaseController {
       return;
     }
 
-    this.send(res, this.success({ 
-      id: user.id, 
-      name: `${user.firstName} ${user.lastName}`.trim() || user.email 
+    this.send(res, this.success({
+      id: user.id,
+      name: `${user.firstName} ${user.lastName}`.trim() || user.email
     }, 'Usuario verificado.'));
   }
 

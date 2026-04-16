@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Transaction } from './entities/transaction.entity.js';
 import { TransactionRepository } from './repositories/transaction.repository.js';
-import { TransactionService } from './services/transaction.service.js';
+import { TransactionService } from './services/transaction.service';
 import { TransactionController } from './controllers/transaction.controller.js';
-import { UserModule } from '../user/user.module.js';
-import { WalletModule } from '../wallet/wallet.module.js';
+import { UserModule } from '../user/user.module';
+import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
   imports: [
@@ -17,4 +17,4 @@ import { WalletModule } from '../wallet/wallet.module.js';
   providers: [TransactionRepository, TransactionService],
   exports: [TransactionService, TransactionRepository],
 })
-export class TransactionModule {}
+export class TransactionModule { }

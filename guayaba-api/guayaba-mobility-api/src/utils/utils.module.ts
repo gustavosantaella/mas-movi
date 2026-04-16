@@ -1,10 +1,10 @@
 import { Global, Module } from '@nestjs/common';
-import { JwtService } from './jwt.service.js';
-import { MailtrapService } from './mailtrap.service.js';
+import { JwtService } from './jwt.service';
+import { MailtrapService } from './mailtrap.service';
 
 @Global()
 @Module({
   providers: [JwtService, MailtrapService],
   exports: [JwtService, MailtrapService],
 })
-export class UtilsModule {}
+export class UtilsModule { }

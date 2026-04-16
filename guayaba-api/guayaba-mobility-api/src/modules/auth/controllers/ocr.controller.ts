@@ -2,7 +2,7 @@ import { Controller, Post, Res, UseInterceptors, UploadedFiles, Logger } from '@
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { BaseController } from '@/core/base.controller.js';
-import { OcrService } from '@/modules/auth/services/ocr.service.js';
+import { OcrService } from '@/modules/auth/services/ocr.service';
 
 @Controller('ocr')
 export class OcrController extends BaseController {

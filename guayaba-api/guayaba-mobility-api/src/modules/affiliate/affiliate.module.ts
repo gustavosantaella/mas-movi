@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AffiliatedRecipient } from './entities/affiliated-recipient.entity.js';
-import { AffiliateService } from './services/affiliate.service.js';
+import { AffiliateService } from './services/affiliate.service';
 import { AffiliateController } from './controllers/affiliate.controller.js';
-import { UserModule } from '../user/user.module.js';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -14,4 +14,4 @@ import { UserModule } from '../user/user.module.js';
   providers: [AffiliateService],
   exports: [AffiliateService],
 })
-export class AffiliateModule {}
+export class AffiliateModule { }

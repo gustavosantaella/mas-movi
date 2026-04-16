@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Trip } from './entities/trip.entity.js';
 import { TripRepository } from './repositories/trip.repository.js';
-import { TripService } from './services/trip.service.js';
+import { TripService } from './services/trip.service';
 import { TripController } from './controllers/trip.controller.js';
 
 @Module({
@@ -11,4 +11,4 @@ import { TripController } from './controllers/trip.controller.js';
   providers: [TripRepository, TripService],
   exports: [TripService, TripRepository],
 })
-export class TripModule {}
+export class TripModule { }
