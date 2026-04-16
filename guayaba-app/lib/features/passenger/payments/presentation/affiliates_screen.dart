@@ -18,12 +18,19 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
 
   @override
   void initState() {
+    debugPrint('AffiliatesScreen initState');
+    debugPrint('API URL: ${ApiClient.baseUrl}');
     super.initState();
     _fetchAffiliates();
   }
 
   Future<void> _fetchAffiliates() async {
-    setState(() { _loading = true; _error = null; });
+    debugPrint('API URL: ${ApiClient.baseUrl}');
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final api = ApiClient();
       final response = await api.dio.get('/mobility/affiliates');
@@ -47,18 +54,24 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
   Future<void> _deleteAffiliate(int id) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar Afiliado'),
-        content: const Text('¿Estás seguro de que deseas eliminar este contacto?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true), 
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Eliminar'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Eliminar Afiliado'),
+            content: const Text(
+              '¿Estás seguro de que deseas eliminar este contacto?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Eliminar'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (confirm != true) return;
@@ -92,10 +105,8 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
                 onBack: () => Navigator.pop(context),
               ),
             ),
-            
-            Expanded(
-              child: _buildBody(),
-            ),
+
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
@@ -111,7 +122,9 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.salmon));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.salmon),
+      );
     }
 
     if (_error != null) {
@@ -124,7 +137,10 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
             Text(_error!, style: const TextStyle(color: AppColors.grayNeutral)),
             TextButton(
               onPressed: _fetchAffiliates,
-              child: const Text('Reintentar', style: TextStyle(color: AppColors.salmon)),
+              child: const Text(
+                'Reintentar',
+                style: TextStyle(color: AppColors.salmon),
+              ),
             ),
           ],
         ),
@@ -136,11 +152,19 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.people_outline, size: 80, color: AppColors.grayNeutral.withOpacity(0.2)),
+            Icon(
+              Icons.people_outline,
+              size: 80,
+              color: AppColors.grayNeutral.withOpacity(0.2),
+            ),
             const SizedBox(height: 20),
             const Text(
               'No tienes contactos afiliados',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.charcoal),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.charcoal,
+              ),
             ),
             const SizedBox(height: 8),
             const Padding(
@@ -178,14 +202,24 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
             ),
             title: Text(
               a['alias'] ?? '${a['firstName']} ${a['lastName']}',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.charcoal),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.charcoal,
+              ),
             ),
             subtitle: Text(
               a['email'] ?? a['phone'] ?? '',
-              style: const TextStyle(fontSize: 12, color: AppColors.grayNeutral),
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.grayNeutral,
+              ),
             ),
             trailing: IconButton(
-              icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.grayNeutral),
+              icon: const Icon(
+                Icons.delete_outline,
+                size: 20,
+                color: AppColors.grayNeutral,
+              ),
               onPressed: () => _deleteAffiliate(a['id']),
             ),
           ),

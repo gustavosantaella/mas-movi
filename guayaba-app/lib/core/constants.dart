@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
 /// ─── Network ────────────────────────────────────────
-final _apiUrl = String.fromEnvironment(
+const _apiUrl = String.fromEnvironment(
   'API_URL',
   defaultValue: 'https://movimas.com',
 );
