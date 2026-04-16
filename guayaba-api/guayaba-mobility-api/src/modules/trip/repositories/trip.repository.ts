@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Trip } from '@/modules/trip/entities/trip.entity.js';
+import { Trip } from '../../../modules/trip/entities/trip.entity.js';
 import { TripDao } from './models/trip.dao.js';
 
 @Injectable()

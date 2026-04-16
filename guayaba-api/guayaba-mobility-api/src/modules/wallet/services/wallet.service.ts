@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { WalletRepository } from '@/modules/wallet/repositories/wallet.repository.js';
-import { WalletDao } from '@/modules/wallet/repositories/models/wallet.dao.js';
+import { WalletRepository } from '../../../modules/wallet/repositories/wallet.repository.js';
+import { WalletDao } from '../../../modules/wallet/repositories/models/wallet.dao.js';
 
 @Injectable()
 export class WalletService {

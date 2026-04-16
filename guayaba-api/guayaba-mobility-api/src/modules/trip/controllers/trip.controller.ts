@@ -10,8 +10,8 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { BaseController } from "@/core/base.controller.js";
-import { TripService } from "@/modules/trip/services/trip.service";
+import { BaseController } from '../../../core/base.controller.js';
+import { TripService } from '../../../modules/trip/services/trip.service';
 import { CreateTripDto, UpdateTripDto } from "./models/trip.dto.js";
 
 @Controller('trips')

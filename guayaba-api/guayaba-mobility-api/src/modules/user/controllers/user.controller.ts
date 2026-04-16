@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Headers, Patch, Post, Query, Res, UnauthorizedException } from '@nestjs/common';
 import type { Response } from 'express';
-import { BaseController } from '@/core/base.controller';
-import { UserService } from '@/modules/user/services/user.service';
-import { JwtService } from '@/utils/jwt.service';
-import { WalletService } from '@/modules/wallet/services/wallet.service';
+import { BaseController } from '../../../core/base.controller';
+import { UserService } from '../../../modules/user/services/user.service';
+import { JwtService } from '../../../utils/jwt.service';
+import { WalletService } from '../../../modules/wallet/services/wallet.service';
 
 @Controller('user')
 export class UserController extends BaseController {

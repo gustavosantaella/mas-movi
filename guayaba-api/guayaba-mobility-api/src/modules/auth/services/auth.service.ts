@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { UserRepository } from '@/modules/user/repositories/user.repository.js';
-import { JwtService } from '@/utils/jwt.service';
-import { MailtrapService } from '@/utils/mailtrap.service';
-import { RegisterDto } from '@/modules/auth/controllers/models/register.dto.js';
-import { WalletService } from '@/modules/wallet/services/wallet.service';
+import { UserRepository } from '../../../modules/user/repositories/user.repository.js';
+import { JwtService } from '../../../utils/jwt.service';
+import { MailtrapService } from '../../../utils/mailtrap.service';
+import { RegisterDto } from '../../../modules/auth/controllers/models/register.dto.js';
+import { WalletService } from '../../../modules/wallet/services/wallet.service';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

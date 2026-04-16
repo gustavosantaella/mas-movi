@@ -1,7 +1,7 @@
 import { Controller, Get, Param, ParseIntPipe, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { BaseController } from '@/core/base.controller.js';
-import { WalletService } from '@/modules/wallet/services/wallet.service';
+import { BaseController } from '../../../core/base.controller.js';
+import { WalletService } from '../../../modules/wallet/services/wallet.service';
 
 @Controller('wallets')
 export class WalletController extends BaseController {

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Wallet } from '@/modules/wallet/entities/wallet.entity.js';
-import { WalletDao } from '@/modules/wallet/repositories/models/wallet.dao.js';
+import { Wallet } from '../../../modules/wallet/entities/wallet.entity.js';
+import { WalletDao } from '../../../modules/wallet/repositories/models/wallet.dao.js';
 
 @Injectable()
 export class WalletRepository {

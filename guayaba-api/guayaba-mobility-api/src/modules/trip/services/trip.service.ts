@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { TripRepository } from '@/modules/trip/repositories/trip.repository.js';
-import { TripDao } from '@/modules/trip/repositories/models/trip.dao.js';
-import { CreateTripDto, UpdateTripDto } from '@/modules/trip/controllers/models/trip.dto.js';
+import { TripRepository } from '../../../modules/trip/repositories/trip.repository.js';
+import { TripDao } from '../../../modules/trip/repositories/models/trip.dao.js';
+import { CreateTripDto, UpdateTripDto } from '../../../modules/trip/controllers/models/trip.dto.js';
 
 @Injectable()
 export class TripService {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { UserRepository } from '@/modules/user/repositories/user.repository.js';
-import { UserDao } from '@/modules/user/repositories/models/user.dao.js';
+import { UserRepository } from '../../../modules/user/repositories/user.repository.js';
+import { UserDao } from '../../../modules/user/repositories/models/user.dao.js';
 
 @Injectable()
 export class UserService {

@@ -2,8 +2,8 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TransactionRepository } from '../repositories/transaction.repository.js';
-import { UserService } from '@/modules/user/services/user.service';
-import { WalletService } from '@/modules/wallet/services/wallet.service';
+import { UserService } from '../../../modules/user/services/user.service';
+import { WalletService } from '../../../modules/wallet/services/wallet.service';
 import { TransactionType } from '../entities/transaction.entity.js';
 import { TransactionDao } from '../repositories/models/transaction.dao.js';
 

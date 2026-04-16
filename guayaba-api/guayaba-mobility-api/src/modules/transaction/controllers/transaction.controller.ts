@@ -7,9 +7,9 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { BaseController } from '@/core/base.controller.js';
+import { BaseController } from '../../../core/base.controller.js';
 import { TransactionService } from '../services/transaction.service';
-import { UserService } from '@/modules/user/services/user.service';
+import { UserService } from '../../../modules/user/services/user.service';
 import { TransferFareDto } from './models/transaction.dto.js';
 
 @Controller('transactions')

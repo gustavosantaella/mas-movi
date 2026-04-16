@@ -9,7 +9,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { BaseController } from '@/core/base.controller.js';
+import { BaseController } from '../../../core/base.controller.js';
 import { AffiliateService } from '../services/affiliate.service';
 
 @Controller('affiliates')

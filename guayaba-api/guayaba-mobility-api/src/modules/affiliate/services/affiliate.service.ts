@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserService } from '@/modules/user/services/user.service';
+import { UserService } from '../../../modules/user/services/user.service';
 import { AffiliatedRecipient } from '../entities/affiliated-recipient.entity.js';
 
 @Injectable()
