@@ -21,7 +21,7 @@ class PaymentScreen extends StatelessWidget {
               title: 'Enviar Pasaje',
               desc: 'Envía saldo a otro usuario de Guayaba',
               color: AppColors.salmon,
-              onTap: () => context.push('/pay-fare'),
+              onTap: () => context.push('/send-fare'),
             ),
             const SizedBox(height: 12),
             _PaymentOption(

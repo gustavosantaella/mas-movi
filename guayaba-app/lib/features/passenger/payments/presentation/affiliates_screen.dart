@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/network/api_client.dart';
@@ -33,7 +34,7 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
     });
     try {
       final api = ApiClient();
-      final response = await api.dio.get('/mobility/affiliates');
+      final response = await api.dio.get('mobility/affiliates');
       final data = ApiClient.parseResponse(response);
       if (mounted) {
         setState(() {
@@ -79,7 +80,7 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
     setState(() => _loading = true);
     try {
       final api = ApiClient();
-      await api.dio.delete('/mobility/affiliates/$id');
+      await api.dio.delete('mobility/affiliates/$id');
       _fetchAffiliates();
     } catch (e) {
       setState(() => _loading = false);
@@ -111,9 +112,7 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to send fare or add affiliate
-        },
+        onPressed: () => context.push('/send-fare'),
         backgroundColor: AppColors.salmon,
         child: const Icon(Icons.person_add, color: Colors.white),
       ),

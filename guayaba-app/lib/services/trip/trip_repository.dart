@@ -22,7 +22,7 @@ class TripRepository {
   }) async {
     try {
       final response = await _api.dio.post(
-        '/mobility/payment/trips',
+        'mobility/payment/trips',
         data: {
           if (boardingLat != null) 'boardingLat': boardingLat,
           if (boardingLong != null) 'boardingLong': boardingLong,
@@ -52,7 +52,7 @@ class TripRepository {
   Future<List<Map<String, dynamic>>> getRecentTrips({String? role, int limit = 10}) async {
     try {
       final response = await _api.dio.get(
-        '/mobility/trips/history',
+        'mobility/trips/history',
         queryParameters: {
           if (role != null) 'role': role,
           'limit': limit,

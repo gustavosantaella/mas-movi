@@ -48,7 +48,7 @@ class _SendFareScreenState extends State<SendFareScreen> {
     setState(() { _loadingAffiliates = true; });
     try {
       final api = ApiClient();
-      final response = await api.dio.get('/mobility/affiliates');
+      final response = await api.dio.get('mobility/affiliates');
       final data = ApiClient.parseResponse(response);
       if (mounted) {
         setState(() {
@@ -69,7 +69,7 @@ class _SendFareScreenState extends State<SendFareScreen> {
 
     try {
       final api = ApiClient();
-      final response = await api.dio.post('/mobility/transactions/verify-recipient', data: {
+      final response = await api.dio.post('mobility/transactions/verify-recipient', data: {
         'identifier': identifier,
         'searchBy': _searchBy,
       });
@@ -141,7 +141,7 @@ class _SendFareScreenState extends State<SendFareScreen> {
 
     try {
       final api = ApiClient();
-      await api.dio.post('/mobility/transactions/transfer', data: {
+      await api.dio.post('mobility/transactions/transfer', data: {
         'identifier': _recipientIdentifier,
         'amount': amt,
         'searchBy': _searchBy,
@@ -155,7 +155,7 @@ class _SendFareScreenState extends State<SendFareScreen> {
 
         // ─── Affiliate if requested ───
         if (_affiliate) {
-          api.dio.post('/mobility/affiliates', data: {
+          api.dio.post('mobility/affiliates', data: {
             'identifier': _recipientIdentifier,
             'searchBy': _searchBy,
           }).then((_) => null).catchError((e) {

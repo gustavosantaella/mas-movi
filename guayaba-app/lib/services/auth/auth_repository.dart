@@ -11,7 +11,7 @@ class AuthRepository {
     bool rememberPassword = false,
   }) async {
     final response = await _api.dio.post(
-      '/mobility/auth/login',
+      'mobility/auth/login',
       data: {
         'email': email,
         'password': password,
@@ -33,7 +33,7 @@ class AuthRepository {
     String? sex,
   }) async {
     final response = await _api.dio.post(
-      '/mobility/auth/register',
+      'mobility/auth/register',
       data: {
         'email': email,
         'password': password,
@@ -49,12 +49,12 @@ class AuthRepository {
   }
 
   Future<void> forgotPassword(String email) async {
-    await _api.dio.post('/mobility/auth/forgot-password', data: {'email': email});
+    await _api.dio.post('mobility/auth/forgot-password', data: {'email': email});
   }
 
   Future<void> resendConfirmationEmail(String token) async {
     await _api.dio.post(
-      '/mobility/auth/resend-confirmation',
+      'mobility/auth/resend-confirmation',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
   }
@@ -65,7 +65,7 @@ class AuthRepository {
     required String newPassword,
   }) async {
     final response = await _api.dio.post(
-      '/mobility/auth/change-password',
+      'mobility/auth/change-password',
       data: {'currentPassword': currentPassword, 'newPassword': newPassword},
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
@@ -86,14 +86,14 @@ class AuthRepository {
         filename: 'document.jpg',
       ),
     });
-    final response = await _api.dio.post('/mobility/ocr/verify', data: formData);
+    final response = await _api.dio.post('mobility/ocr/verify', data: formData);
     final data = ApiClient.parseResponse(response);
     return data['data'] as Map<String, dynamic>;
   }
 
   Future<UserProfile> getProfile(String token) async {
     final response = await _api.dio.get(
-      '/mobility/user/me',
+      'mobility/user/me',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
     final data = ApiClient.parseResponse(response);
@@ -105,7 +105,7 @@ class AuthRepository {
     Map<String, dynamic> fields,
   ) async {
     final response = await _api.dio.patch(
-      '/mobility/user/me',
+      'mobility/user/me',
       data: fields,
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
@@ -115,7 +115,7 @@ class AuthRepository {
 
   Future<void> confirmEntity(String token, Map<String, dynamic> ocrData) async {
     final response = await _api.dio.post(
-      '/mobility/user/confirm-entity',
+      'mobility/user/confirm-entity',
       data: ocrData,
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );

@@ -28,7 +28,7 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
 
     try {
       final api = ApiClient();
-      final response = await api.dio.get('/mobility/transactions/me');
+      final response = await api.dio.get('mobility/transactions/me');
       final data = ApiClient.parseResponse(response);
       
       if (mounted) {
