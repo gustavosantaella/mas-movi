@@ -34,7 +34,7 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
     });
     try {
       final api = ApiClient();
-      final response = await api.dio.get('mobility/affiliates');
+      final response = await api.dio.get('/affiliates');
       final data = ApiClient.parseResponse(response);
       if (mounted) {
         setState(() {
@@ -80,7 +80,7 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
     setState(() => _loading = true);
     try {
       final api = ApiClient();
-      await api.dio.delete('mobility/affiliates/$id');
+      await api.dio.delete('/affiliates/$id');
       _fetchAffiliates();
     } catch (e) {
       setState(() => _loading = false);

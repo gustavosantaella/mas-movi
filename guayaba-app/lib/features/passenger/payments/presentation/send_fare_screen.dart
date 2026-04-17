@@ -19,13 +19,13 @@ class _SendFareScreenState extends State<SendFareScreen> {
   bool _loading = false;
   bool _affiliate = false;
   String? _error;
-  
+
   // Tabs & Affiliates
   int _tabIndex = 0; // 0: Sin afiliar, 1: Afiliado
   String _searchBy = 'email'; // 'email' or 'phone'
   List<dynamic> _affiliates = [];
   bool _loadingAffiliates = false;
-  
+
   // Recipient data
   String? _recipientName;
   String? _recipientIdentifier;
@@ -43,12 +43,14 @@ class _SendFareScreenState extends State<SendFareScreen> {
   }
 
   // ─── Logic ──────────────────────────────────────────
-  
+
   Future<void> _fetchAffiliates() async {
-    setState(() { _loadingAffiliates = true; });
+    setState(() {
+      _loadingAffiliates = true;
+    });
     try {
       final api = ApiClient();
-      final response = await api.dio.get('mobility/affiliates');
+      final response = await api.dio.get('/affiliates');
       final data = ApiClient.parseResponse(response);
       if (mounted) {
         setState(() {
@@ -57,7 +59,10 @@ class _SendFareScreenState extends State<SendFareScreen> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _loadingAffiliates = false; });
+      if (mounted)
+        setState(() {
+          _loadingAffiliates = false;
+        });
     }
   }
 
@@ -65,15 +70,18 @@ class _SendFareScreenState extends State<SendFareScreen> {
     final identifier = _identifierController.text.trim();
     if (identifier.isEmpty) return;
 
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
     try {
       final api = ApiClient();
-      final response = await api.dio.post('mobility/transactions/verify-recipient', data: {
-        'identifier': identifier,
-        'searchBy': _searchBy,
-      });
-      
+      final response = await api.dio.post(
+        '/transactions/verify-recipient',
+        data: {'identifier': identifier, 'searchBy': _searchBy},
+      );
+
       final data = ApiClient.parseResponse(response);
       if (mounted) {
         setState(() {
@@ -99,37 +107,63 @@ class _SendFareScreenState extends State<SendFareScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Confirmar Envío', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('¿Estás seguro de enviar esta cantidad?'),
-            const SizedBox(height: 16),
-            Text('A: $_recipientName', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.salmon)),
-            Text('Monto: Bs. $_amount', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.grayNeutral)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _confirmTransfer();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.salmon,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text('Confirmar', style: TextStyle(color: Colors.white)),
+            title: const Text(
+              'Confirmar Envío',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('¿Estás seguro de enviar esta cantidad?'),
+                const SizedBox(height: 16),
+                Text(
+                  'A: $_recipientName',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.salmon,
+                  ),
+                ),
+                Text(
+                  'Monto: Bs. $_amount',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(color: AppColors.grayNeutral),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _confirmTransfer();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.salmon,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Confirmar',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -137,15 +171,21 @@ class _SendFareScreenState extends State<SendFareScreen> {
     final amt = double.tryParse(_amount) ?? 0;
     if (amt <= 0) return;
 
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
     try {
       final api = ApiClient();
-      await api.dio.post('mobility/transactions/transfer', data: {
-        'identifier': _recipientIdentifier,
-        'amount': amt,
-        'searchBy': _searchBy,
-      });
+      await api.dio.post(
+        '/transactions/transfer',
+        data: {
+          'identifier': _recipientIdentifier,
+          'amount': amt,
+          'searchBy': _searchBy,
+        },
+      );
 
       if (mounted) {
         setState(() {
@@ -155,13 +195,19 @@ class _SendFareScreenState extends State<SendFareScreen> {
 
         // ─── Affiliate if requested ───
         if (_affiliate) {
-          api.dio.post('mobility/affiliates', data: {
-            'identifier': _recipientIdentifier,
-            'searchBy': _searchBy,
-          }).then((_) => null).catchError((e) {
-            debugPrint('Error affiliating: $e');
-            return null;
-          });
+          api.dio
+              .post(
+                '/affiliates',
+                data: {
+                  'identifier': _recipientIdentifier,
+                  'searchBy': _searchBy,
+                },
+              )
+              .then((_) => null)
+              .catchError((e) {
+                debugPrint('Error affiliating: $e');
+                return null;
+              });
         }
       }
     } catch (e) {
@@ -220,12 +266,9 @@ class _SendFareScreenState extends State<SendFareScreen> {
                 },
               ),
             ),
-            
+
             Expanded(
-              child: AnimatedSwitcher(
-                duration: 300.ms,
-                child: _buildStep(),
-              ),
+              child: AnimatedSwitcher(duration: 300.ms, child: _buildStep()),
             ),
           ],
         ),
@@ -235,10 +278,14 @@ class _SendFareScreenState extends State<SendFareScreen> {
 
   Widget _buildStep() {
     switch (_step) {
-      case 1: return _buildSearchStep();
-      case 2: return _buildAmountStep();
-      case 3: return _buildSuccessStep();
-      default: return const SizedBox();
+      case 1:
+        return _buildSearchStep();
+      case 2:
+        return _buildAmountStep();
+      case 3:
+        return _buildSuccessStep();
+      default:
+        return const SizedBox();
     }
   }
 
@@ -253,7 +300,11 @@ class _SendFareScreenState extends State<SendFareScreen> {
             children: [
               const Text(
                 '¿A quién deseas enviarle?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.charcoal),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.charcoal,
+                ),
               ),
               const SizedBox(height: 4),
               const Text(
@@ -263,7 +314,7 @@ class _SendFareScreenState extends State<SendFareScreen> {
             ],
           ),
         ),
-        
+
         const SizedBox(height: 16),
 
         // Custom Tab Bar
@@ -283,9 +334,9 @@ class _SendFareScreenState extends State<SendFareScreen> {
             ),
           ),
         ),
-        
+
         const SizedBox(height: 8),
-        
+
         Expanded(
           child: _tabIndex == 0 ? _buildManualEntry() : _buildAffiliatesList(),
         ),
@@ -310,9 +361,16 @@ class _SendFareScreenState extends State<SendFareScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              boxShadow: active ? [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))
-              ] : null,
+              boxShadow:
+                  active
+                      ? [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                      : null,
             ),
             alignment: Alignment.center,
             child: Text(
@@ -336,9 +394,16 @@ class _SendFareScreenState extends State<SendFareScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Buscar por:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.charcoal)),
+          const Text(
+            'Buscar por:',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.charcoal,
+            ),
+          ),
           const SizedBox(height: 12),
-          
+
           // Segmented Search Selector
           Container(
             padding: const EdgeInsets.all(4),
@@ -349,21 +414,31 @@ class _SendFareScreenState extends State<SendFareScreen> {
             child: Row(
               children: [
                 _buildSearchByItem('email', 'Correo', Icons.email_outlined),
-                _buildSearchByItem('phone', 'Teléfono', Icons.phone_android_outlined),
+                _buildSearchByItem(
+                  'phone',
+                  'Teléfono',
+                  Icons.phone_android_outlined,
+                ),
               ],
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           AnimatedSwitcher(
             duration: 200.ms,
             child: TextField(
               key: ValueKey(_searchBy),
               controller: _identifierController,
-              keyboardType: _searchBy == 'email' ? TextInputType.emailAddress : TextInputType.phone,
+              keyboardType:
+                  _searchBy == 'email'
+                      ? TextInputType.emailAddress
+                      : TextInputType.phone,
               decoration: InputDecoration(
-                hintText: _searchBy == 'email' ? 'ejemplo@correo.com' : 'Número de teléfono',
+                hintText:
+                    _searchBy == 'email'
+                        ? 'ejemplo@correo.com'
+                        : 'Número de teléfono',
                 filled: true,
                 fillColor: AppColors.bgLightGray,
                 border: OutlineInputBorder(
@@ -371,17 +446,25 @@ class _SendFareScreenState extends State<SendFareScreen> {
                   borderSide: BorderSide.none,
                 ),
                 prefixIcon: Icon(
-                  _searchBy == 'email' ? Icons.email_outlined : Icons.phone_android_outlined,
+                  _searchBy == 'email'
+                      ? Icons.email_outlined
+                      : Icons.phone_android_outlined,
                   color: AppColors.salmon,
                 ),
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
           SwitchListTile(
-            title: const Text('¿Afiliar usuario?', style: TextStyle(fontSize: 14)),
-            subtitle: const Text('Guardar en contactos frecuentes', style: TextStyle(fontSize: 12)),
+            title: const Text(
+              '¿Afiliar usuario?',
+              style: TextStyle(fontSize: 14),
+            ),
+            subtitle: const Text(
+              'Guardar en contactos frecuentes',
+              style: TextStyle(fontSize: 12),
+            ),
             value: _affiliate,
             activeColor: AppColors.salmon,
             contentPadding: EdgeInsets.zero,
@@ -389,7 +472,10 @@ class _SendFareScreenState extends State<SendFareScreen> {
           ),
           if (_error != null) ...[
             const SizedBox(height: 12),
-            Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+            Text(
+              _error!,
+              style: const TextStyle(color: Colors.red, fontSize: 13),
+            ),
           ],
           const SizedBox(height: 32),
           AppButton(
@@ -422,14 +508,24 @@ class _SendFareScreenState extends State<SendFareScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
-              boxShadow: active ? [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)
-              ] : null,
+              boxShadow:
+                  active
+                      ? [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 4,
+                        ),
+                      ]
+                      : null,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: 16, color: active ? AppColors.salmon : AppColors.grayNeutral),
+                Icon(
+                  icon,
+                  size: 16,
+                  color: active ? AppColors.salmon : AppColors.grayNeutral,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   label,
@@ -449,7 +545,9 @@ class _SendFareScreenState extends State<SendFareScreen> {
 
   Widget _buildAffiliatesList() {
     if (_loadingAffiliates) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.salmon));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.salmon),
+      );
     }
 
     if (_affiliates.isEmpty) {
@@ -457,9 +555,16 @@ class _SendFareScreenState extends State<SendFareScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.person_add_disabled_outlined, size: 64, color: AppColors.grayNeutral.withOpacity(0.3)),
+            Icon(
+              Icons.person_add_disabled_outlined,
+              size: 64,
+              color: AppColors.grayNeutral.withOpacity(0.3),
+            ),
             const SizedBox(height: 16),
-            const Text('Aún no tienes afiliados', style: TextStyle(color: AppColors.grayNeutral)),
+            const Text(
+              'Aún no tienes afiliados',
+              style: TextStyle(color: AppColors.grayNeutral),
+            ),
           ],
         ),
       );
@@ -482,7 +587,8 @@ class _SendFareScreenState extends State<SendFareScreen> {
             onTap: () {
               setState(() {
                 _recipientIdentifier = a['email'] ?? a['phone'];
-                _recipientName = a['alias'] ?? '${a['firstName']} ${a['lastName']}';
+                _recipientName =
+                    a['alias'] ?? '${a['firstName']} ${a['lastName']}';
                 _searchBy = a['email'] != null ? 'email' : 'phone';
                 _step = 2;
                 _amount = '0';
@@ -492,10 +598,22 @@ class _SendFareScreenState extends State<SendFareScreen> {
               backgroundColor: AppColors.salmon.withOpacity(0.1),
               child: const Icon(Icons.person, color: AppColors.salmon),
             ),
-            title: Text(a['alias'] ?? '${a['firstName']} ${a['lastName']}', 
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.charcoal)),
-            subtitle: Text(a['email'] ?? '', style: const TextStyle(fontSize: 12)),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.grayNeutral),
+            title: Text(
+              a['alias'] ?? '${a['firstName']} ${a['lastName']}',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.charcoal,
+              ),
+            ),
+            subtitle: Text(
+              a['email'] ?? '',
+              style: const TextStyle(fontSize: 12),
+            ),
+            trailing: const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: AppColors.grayNeutral,
+            ),
           ),
         ).animate().fadeIn(delay: (index * 40).ms).slideX(begin: 0.1);
       },
@@ -524,8 +642,20 @@ class _SendFareScreenState extends State<SendFareScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_recipientName ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.salmon)),
-                    Text(_recipientIdentifier ?? '', style: const TextStyle(fontSize: 12, color: AppColors.grayNeutral)),
+                    Text(
+                      _recipientName ?? '',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.salmon,
+                      ),
+                    ),
+                    Text(
+                      _recipientIdentifier ?? '',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.grayNeutral,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -536,29 +666,39 @@ class _SendFareScreenState extends State<SendFareScreen> {
             ],
           ),
         ),
-        
+
         const Spacer(),
-        
+
         // Amount Display
         Text(
           'Bs. $_amount',
-          style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: AppColors.charcoal),
+          style: const TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.w900,
+            color: AppColors.charcoal,
+          ),
         ),
-        const Text('Ingresa el monto a enviar', style: TextStyle(color: AppColors.grayNeutral)),
-        
+        const Text(
+          'Ingresa el monto a enviar',
+          style: TextStyle(color: AppColors.grayNeutral),
+        ),
+
         const Spacer(),
 
-        if (_error != null) 
+        if (_error != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+            child: Text(
+              _error!,
+              style: const TextStyle(color: Colors.red, fontSize: 13),
+            ),
           ),
 
         // Keypad
         _buildKeypad(),
-        
+
         const SizedBox(height: 24),
-        
+
         // Confirm Button
         Padding(
           padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
@@ -589,19 +729,32 @@ class _SendFareScreenState extends State<SendFareScreen> {
   Widget _buildKeyRow(List<String> keys) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: keys.map((k) {
-        return GestureDetector(
-          onTap: () => _onKeyTap(k),
-          child: Container(
-            width: 70, height: 70,
-            alignment: Alignment.center,
-            color: Colors.transparent,
-            child: k == 'delete' 
-              ? const Icon(Icons.backspace_outlined, color: AppColors.charcoal)
-              : Text(k, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.charcoal)),
-          ),
-        );
-      }).toList(),
+      children:
+          keys.map((k) {
+            return GestureDetector(
+              onTap: () => _onKeyTap(k),
+              child: Container(
+                width: 70,
+                height: 70,
+                alignment: Alignment.center,
+                color: Colors.transparent,
+                child:
+                    k == 'delete'
+                        ? const Icon(
+                          Icons.backspace_outlined,
+                          color: AppColors.charcoal,
+                        )
+                        : Text(
+                          k,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.charcoal,
+                          ),
+                        ),
+              ),
+            );
+          }).toList(),
     );
   }
 
@@ -613,7 +766,8 @@ class _SendFareScreenState extends State<SendFareScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 100, height: 100,
+              width: 100,
+              height: 100,
               decoration: const BoxDecoration(
                 color: AppColors.successGreen,
                 shape: BoxShape.circle,
@@ -623,13 +777,20 @@ class _SendFareScreenState extends State<SendFareScreen> {
             const SizedBox(height: 32),
             const Text(
               '¡Envío Exitoso!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.charcoal),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: AppColors.charcoal,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
               'Has enviado Bs. $_amount a $_recipientName correctamente.',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.grayNeutral, fontSize: 16),
+              style: const TextStyle(
+                color: AppColors.grayNeutral,
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 48),
             AppButton(

@@ -9,7 +9,8 @@ class TransactionsHistoryScreen extends StatefulWidget {
   const TransactionsHistoryScreen({super.key});
 
   @override
-  State<TransactionsHistoryScreen> createState() => _TransactionsHistoryScreenState();
+  State<TransactionsHistoryScreen> createState() =>
+      _TransactionsHistoryScreenState();
 }
 
 class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
@@ -24,13 +25,16 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
   }
 
   Future<void> _fetchTransactions() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
     try {
       final api = ApiClient();
-      final response = await api.dio.get('mobility/transactions/me');
+      final response = await api.dio.get('/transactions/me');
       final data = ApiClient.parseResponse(response);
-      
+
       if (mounted) {
         setState(() {
           _transactions = data['data'] ?? [];
@@ -61,10 +65,8 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
                 onBack: () => Navigator.pop(context),
               ),
             ),
-            
-            Expanded(
-              child: _buildContent(),
-            ),
+
+            Expanded(child: _buildContent()),
           ],
         ),
       ),
@@ -73,7 +75,9 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
 
   Widget _buildContent() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.salmon));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.salmon),
+      );
     }
 
     if (_error != null) {
@@ -84,7 +88,10 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
             const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
             const SizedBox(height: 16),
             Text(_error!),
-            TextButton(onPressed: _fetchTransactions, child: const Text('Reintentar')),
+            TextButton(
+              onPressed: _fetchTransactions,
+              child: const Text('Reintentar'),
+            ),
           ],
         ),
       );
@@ -95,7 +102,11 @@ class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history_toggle_off, size: 64, color: AppColors.grayNeutral.withValues(alpha: 0.3)),
+            Icon(
+              Icons.history_toggle_off,
+              size: 64,
+              color: AppColors.grayNeutral.withValues(alpha: 0.3),
+            ),
             const SizedBox(height: 16),
             const Text(
               'No tienes transacciones aún',
@@ -131,7 +142,7 @@ class _TransactionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final type = transaction['type'] ?? 'unknown';
     final amount = transaction['amount'] ?? 0;
-    
+
     IconData icon;
     Color color;
     String label;
@@ -158,9 +169,10 @@ class _TransactionItem extends StatelessWidget {
         label = 'Otro';
     }
 
-    final createdAt = transaction['created_at'] != null 
-        ? DateTime.tryParse(transaction['created_at'])?.toLocal() 
-        : null;
+    final createdAt =
+        transaction['created_at'] != null
+            ? DateTime.tryParse(transaction['created_at'])?.toLocal()
+            : null;
 
     return GestureDetector(
       onTap: onTap,
@@ -174,7 +186,8 @@ class _TransactionItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 48, height: 48,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -188,12 +201,19 @@ class _TransactionItem extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.charcoal),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: AppColors.charcoal,
+                    ),
                   ),
                   if (createdAt != null)
                     Text(
                       '${createdAt.day}/${createdAt.month}/${createdAt.year}',
-                      style: const TextStyle(fontSize: 12, color: AppColors.grayNeutral),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.grayNeutral,
+                      ),
                     ),
                 ],
               ),
@@ -203,7 +223,10 @@ class _TransactionItem extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 16,
-                color: type == 'recharge' ? AppColors.successGreen : AppColors.charcoal,
+                color:
+                    type == 'recharge'
+                        ? AppColors.successGreen
+                        : AppColors.charcoal,
               ),
             ),
           ],

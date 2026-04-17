@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import '../constants.dart';
 
 /// Dio HTTP client with JWT interceptor.
@@ -24,6 +25,7 @@ class ApiClient {
           if (_token != null) {
             options.headers['Authorization'] = 'Bearer $_token';
           }
+          debugPrint('URL: ${options.baseUrl}');
           handler.next(options);
         },
       ),

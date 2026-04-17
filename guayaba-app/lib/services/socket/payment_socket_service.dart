@@ -24,7 +24,7 @@ class PaymentSocketService {
     if (_socket != null) return;
 
     // Connect through the proxy
-    // Proxy rewrites /proxy/mobility/* → /api/mobility/* → port 3001
+    // Proxy rewrites /proxy//* → /api//* → port 3001
     // NOTE: first arg is just the host — anything after port is treated as namespace
     final baseUrl = apiBaseUrl.replaceAll('/proxy', '');
 
@@ -32,7 +32,7 @@ class PaymentSocketService {
       baseUrl,
       io.OptionBuilder()
           .setTransports(['websocket'])
-          .setPath('/proxy/mobility/socket.io')
+          .setPath('/proxy//socket.io')
           .enableAutoConnect()
           .enableReconnection()
           .build(),
