@@ -10,7 +10,7 @@ export class UserRepository {
   constructor(
     @InjectRepository(User)
     private readonly repo: Repository<User>,
-  ) {}
+  ) { }
 
   async findByEmail(email: string): Promise<User | null> {
     return this.repo.findOne({ where: { email } });
@@ -36,7 +36,7 @@ export class UserRepository {
     user.email = dto.email;
     user.password = hashedPassword;
     user.userType = [dto.userType];
-    user.dni = dto.dni;
+    user.dni = dto.dni?.split(".").join("");
     user.firstName = dto.firstName ?? '';
     user.lastName = dto.lastName ?? '';
     user.dateOfBirth = dto.dateOfBirth ?? '';
