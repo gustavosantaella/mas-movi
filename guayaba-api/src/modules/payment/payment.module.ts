@@ -5,9 +5,10 @@ import { PaymentTripController } from "./controllers/payment.trip.controller.js"
 import { UserModule } from '../user/user.module.js';
 import { TripModule } from '../trip/trip.module.js';
 import { WalletModule } from '../wallet/wallet.module.js';
+import { TransactionModule } from '../transaction/transaction.module.js';
 
 @Module({
-  imports: [TripModule, UserModule, WalletModule],
+  imports: [TripModule, UserModule, WalletModule, TransactionModule],
   controllers: [PaymentTripController],
   providers: [PaymentGateway],
   exports: [PaymentGateway],

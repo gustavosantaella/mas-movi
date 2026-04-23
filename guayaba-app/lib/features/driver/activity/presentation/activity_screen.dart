@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../shared/widgets/screen_layout.dart';
 import '../../../shared/profile/presentation/profile_screen.dart';
+import '../../../../shared/widgets/recent_trips_section.dart';
 
 class ActivityScreen extends ConsumerWidget {
   const ActivityScreen({super.key});
@@ -41,25 +42,9 @@ class ActivityScreen extends ConsumerWidget {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.charcoal)),
             const SizedBox(height: 16),
 
-            // ─── Empty state card ────
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              decoration: BoxDecoration(
-                color: AppColors.bgLightGray,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.borderLightGray),
-              ),
-              child: const Column(
-                children: [
-                  Icon(Icons.access_time, size: 40, color: AppColors.grayNeutral),
-                  SizedBox(height: 12),
-                  Text('Sin actividad reciente',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.charcoal)),
-                  SizedBox(height: 4),
-                  Text('Tus cobros aparecerán aquí',
-                      style: TextStyle(fontSize: 13, color: AppColors.grayNeutral)),
-                ],
+            const Expanded(
+              child: SingleChildScrollView(
+                child: RecentTripsSection(role: 'driver'),
               ),
             ),
           ],

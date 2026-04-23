@@ -26,6 +26,7 @@ export class TripController extends BaseController {
     @Res() res: Response
   ) {
     const userId = this.getUserId();
+    console.log(`📋 [TripHistory] Fetching for userId: ${userId}, Role: ${role}`);
     if (!userId) {
       return this.send(res, this.error('No autorizado.', 401), 401);
     }
@@ -38,6 +39,7 @@ export class TripController extends BaseController {
       trips = await this.tripService.findByPassengerId(userId);
     }
 
+    console.log(`📊 [TripHistory] Found ${trips.length} trips for user ${userId}`);
     this.send(res, this.success(trips, 'Historial de viajes obtenido.'));
   }
 

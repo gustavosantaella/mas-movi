@@ -17,11 +17,13 @@ export class WalletRepository {
   }
 
   async findByPassengerUuid(passengerUuid: string): Promise<WalletDao | null> {
+    console.log(`🔍 [WalletRepo] Finding wallet for passengerUuid: ${passengerUuid}`);
     const wallet = await this.repo.findOne({ where: { passengerUuid } });
     return wallet ? this.toDao(wallet) : null;
   }
 
   async findByDriverUuid(driverUuid: string): Promise<WalletDao | null> {
+    console.log(`🔍 [WalletRepo] Finding wallet for driverUuid: ${driverUuid}`);
     const wallet = await this.repo.findOne({ where: { driverUuid } });
     return wallet ? this.toDao(wallet) : null;
   }
@@ -33,13 +35,13 @@ export class WalletRepository {
   }
 
   async updateBalance(userId: number, amount: number): Promise<void> {
+    console.log(`💰 [WalletRepo] Updating balance for userId: ${userId}, Amount: ${amount}`);
     const wallet = await this.repo.findOne({ where: { userId } });
     if (!wallet) {
-      // If no wallet exists, we create one. 
-      // We might need to fetch the user to get their UUIDs, 
-      // but for a simple increment we can just start with the amount.
+      console.log(`➕ [WalletRepo] No wallet found for userId ${userId}, creating one...`);
       await this.repo.save({ userId, balance: amount });
     } else {
+      console.log(`📈 [WalletRepo] Existing balance for userId ${userId}: ${wallet.balance}. Incrementing by ${amount}`);
       await this.repo.increment({ userId }, 'balance', amount);
     }
   }

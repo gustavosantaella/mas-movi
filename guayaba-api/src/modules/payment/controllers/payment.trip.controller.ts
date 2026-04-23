@@ -7,7 +7,6 @@ import {
   ParseIntPipe,
   Patch,
   Res,
-  Headers,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { BaseController } from '../../../core/base.controller.js';
@@ -15,6 +14,8 @@ import { TripService } from '../../trip/services/trip.service.js';
 import { CreateTripDto, UpdateTripDto } from '../../trip/controllers/models/trip.dto.js';
 import { UserService } from '../../user/services/user.service.js';
 import { WalletService } from '../../wallet/services/wallet.service.js';
+import { TransactionRepository } from '../../transaction/repositories/transaction.repository.js';
+import { TransactionType } from '../../transaction/entities/transaction.entity.js';
 
 @Controller('payment/trips')
 export class PaymentTripController extends BaseController {
@@ -22,11 +23,10 @@ export class PaymentTripController extends BaseController {
     private readonly tripService: TripService,
     private readonly userService: UserService,
     private readonly walletService: WalletService,
+    private readonly transactionRepository: TransactionRepository,
   ) {
     super();
   }
-
-
 
   @Post()
   async create(
@@ -54,46 +54,73 @@ export class PaymentTripController extends BaseController {
       return;
     }
 
+    console.log(`💰 [PaymentTrip] Processing trip: Passenger ${data.passengerId}, Driver ${data.driverId}, Amount ${data.amount}`);
+
     // 1. Get passenger UUID and check balance
-    const passenger = await this.userService.findById(data.passengerId!);
+    const pId = Number(data.passengerId);
+    const passenger = await this.userService.findById(pId);
     if (!passenger || !passenger.passengerUuid) {
+      console.error(`❌ [PaymentTrip] Passenger not found: ${pId}`);
       this.send(res, this.error('Pasajero no encontrado o sin identificador de movilidad.', 404), 404);
       return;
     }
 
-    const passengerWallet = await this.walletService.findByPassengerUuid(passenger.passengerUuid);
-    if (!passengerWallet) {
-      this.send(res, this.error('Billetera del pasajero no encontrada.', 404), 404);
-      return;
+    // 1. Get passenger balance (using userId is more reliable)
+    let passengerWallet = await this.walletService.findByUserId(pId);
+    
+    // Fallback to passengerUuid if userId search fails (though findById already confirmed user exists)
+    if (!passengerWallet && passenger.passengerUuid) {
+      passengerWallet = await this.walletService.findByPassengerUuid(passenger.passengerUuid);
     }
 
-    if (Number(passengerWallet.balance) < data.amount!) {
+    const currentBalance = passengerWallet ? Number(passengerWallet.balance) : 0;
+    const tripAmount = Number(data.amount);
+    console.log(`🏦 [PaymentTrip] Passenger ${pId} Wallet Status: ${passengerWallet ? 'Exists' : 'Not Found (Defaulting to 0)'}, Balance: ${currentBalance}, Trip Amount: ${tripAmount}`);
+
+    if (currentBalance < tripAmount) {
+      console.warn(`⚠️ [PaymentTrip] Insufficient balance for passenger ${pId}`);
       this.send(res, this.error('Saldo insuficiente.', 400), 400);
       return;
     }
 
     // 2. Get driver UUID for credit
-    const driver = await this.userService.findById(data.driverId!);
-
+    const dId = Number(data.driverId);
+    const driver = await this.userService.findById(dId);
     if (!driver || !driver.driverUuid) {
+      console.error(`❌ [PaymentTrip] Driver not found: ${dId}`);
       this.send(res, this.error('Conductor no encontrado o sin identificador de movilidad.', 404), 404);
       return;
     }
 
     // 3. Create trip
-    const trip = await this.tripService.create(data);
+    console.log(`📝 [PaymentTrip] Creating trip record...`);
+    const trip = await this.tripService.create({
+      ...data,
+      passengerId: pId,
+      driverId: dId,
+      amount: tripAmount,
+    });
+    console.log(`✅ [PaymentTrip] Trip created with ID: ${trip.id}`);
 
     // 4. Update wallets (Debit passenger, Credit driver)
-    // Using userId for update balance which uses .increment (positive to add, negative to subtract)
-    await this.walletService.updateBalance(passenger.id, -data.amount!);
-    await this.walletService.updateBalance(driver.id, data.amount!);
+    console.log(`💸 [PaymentTrip] Updating wallets: -${tripAmount} for ${pId}, +${tripAmount} for ${dId}`);
+    await this.walletService.updateBalance(pId, -tripAmount);
+    await this.walletService.updateBalance(dId, tripAmount);
 
+    // 5. Record transaction for history
+    console.log(`📜 [PaymentTrip] Recording transaction...`);
+    await this.transactionRepository.create({
+      fromId: pId,
+      toId: dId,
+      amount: tripAmount,
+      type: TransactionType.PGM,
+      reference: `TRIP-${trip.id}-${Date.now()}`,
+      extras: `Pago de viaje #${trip.id} desde app movilidad`,
+    });
+
+    console.log(`🎉 [PaymentTrip] Payment completed successfully!`);
     this.send(res, this.success(trip, 'Viaje procesado y pagado exitosamente.'));
   }
-
-
-
-
 
   @Patch(':id')
   async update(
