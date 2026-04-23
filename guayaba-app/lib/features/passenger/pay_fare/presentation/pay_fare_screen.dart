@@ -208,7 +208,7 @@ class PayFareScreen extends ConsumerWidget {
                             size: 16, color: AppColors.grayNeutral),
                         SizedBox(width: 8),
                         Text(
-                          'Tarifa actual: Bs. 1,50',
+                          'Escanea para pagar la tarifa',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -314,8 +314,8 @@ class _QrScannerPageState extends State<_QrScannerPage> {
     try {
       // Use driverId as the session room for fire-and-forget WS notification
       final sessionId = driverId.toString();
-      final fare = qrData['fare'] ?? 1.50;
-      final amount = fare is num ? fare.toDouble() : (double.tryParse(fare.toString()) ?? 1.50);
+      final fareValue = qrData['amount'] ?? 1.50;
+      final amount = fareValue is num ? fareValue.toDouble() : (double.tryParse(fareValue.toString()) ?? 1.50);
 
       // Get current location
       final position = await LocationHelper.getCurrentPosition();

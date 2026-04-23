@@ -38,6 +38,9 @@ class ApiClient {
 
   /// Generic API response parser
   static Map<String, dynamic> parseResponse(Response response) {
+    if (response.data is! Map<String, dynamic>) {
+      throw const ApiException('Respuesta inesperada del servidor (formato inválido)');
+    }
     final data = response.data as Map<String, dynamic>;
     if (data['success'] != true) {
       throw ApiException(data['message'] as String? ?? 'Error desconocido');

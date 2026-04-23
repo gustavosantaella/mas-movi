@@ -5,7 +5,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 /// ─── Network ────────────────────────────────────────
 const _apiUrl = String.fromEnvironment(
   'API_URL',
-  defaultValue: 'https://movimas.com',
+  defaultValue: 'https://movimas.com/api/mobility',
 );
 
 bool isAndroidEmulator = false;

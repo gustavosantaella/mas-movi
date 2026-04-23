@@ -22,7 +22,7 @@ class DriverSettingsScreen extends ConsumerWidget {
             _SettingsTile(icon: Icons.edit_outlined, label: 'Información personal', onTap: () => context.push('/personal-info')),
             _SettingsTile(icon: Icons.lock_outline, label: 'Seguridad', onTap: () => context.push('/security')),
             _SettingsTile(icon: Icons.history, label: 'Historial de viajes', onTap: () => context.push('/trip-history')),
-            _SettingsTile(icon: Icons.qr_code, label: 'Ver QR', onTap: () => context.push('/generate-qr')),
+            _SettingsTile(icon: Icons.qr_code, label: 'Generar QR', onTap: () => context.push('/generate-qr')),
             _SettingsTile(icon: Icons.verified_user_outlined, label: 'Verificar identidad', onTap: () => showVerifyEntitySheet(context)),
             const SizedBox(height: 20),
             _SettingsTile(
