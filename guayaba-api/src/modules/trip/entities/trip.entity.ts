@@ -35,6 +35,9 @@ export class Trip {
   @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
   amount!: number;
 
+  @Column({ name: 'passenger_count', type: 'int', default: 1 })
+  passengerCount!: number;
+
   @Column({ type: 'text', nullable: true })
   description!: string;
 

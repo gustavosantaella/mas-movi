@@ -7,6 +7,7 @@ export class CreateTripDto {
   passengerId?: number;
   sessionId?: string;
   amount?: number;
+  passengerCount?: number;
   description?: string;
   directionFrom?: string;
   directionTo?: string;

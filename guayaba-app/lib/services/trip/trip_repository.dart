@@ -19,6 +19,7 @@ class TripRepository {
     String? status,
     DateTime? boardedAt,
     DateTime? landedAt,
+    int? passengerCount,
   }) async {
     try {
       final response = await _api.dio.post(
@@ -38,6 +39,7 @@ class TripRepository {
           if (status != null) 'status': status,
           if (boardedAt != null) 'boardedAt': boardedAt.toIso8601String(),
           if (landedAt != null) 'landedAt': landedAt.toIso8601String(),
+          if (passengerCount != null) 'passengerCount': passengerCount,
         },
       );
       final result = ApiClient.parseResponse(response);
@@ -88,6 +90,7 @@ class TripRepository {
       'status': backendTrip['status'],
       'boarded_at': backendTrip['boardedAt'],
       'landed_at': backendTrip['landedAt'],
+      'passenger_count': backendTrip['passengerCount'],
       'created_at': backendTrip['createdAt'],
       'updated_at': backendTrip['updatedAt'],
     };

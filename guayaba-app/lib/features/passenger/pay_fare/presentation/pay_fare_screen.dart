@@ -434,16 +434,16 @@ class _PayFareScreenState extends ConsumerState<PayFareScreen> {
 // ═══════════════════════════════════════════════════
 //  QR Scanner Page — Scan & Auto-Pay
 // ═══════════════════════════════════════════════════
-class _QrScannerPage extends StatefulWidget {
+class _QrScannerPage extends ConsumerStatefulWidget {
   final int passengerId;
   final int passengerCount;
   const _QrScannerPage({required this.passengerId, this.passengerCount = 1});
 
   @override
-  State<_QrScannerPage> createState() => _QrScannerPageState();
+  ConsumerState<_QrScannerPage> createState() => _QrScannerPageState();
 }
 
-class _QrScannerPageState extends State<_QrScannerPage> {
+class _QrScannerPageState extends ConsumerState<_QrScannerPage> {
   final _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.normal,
     facing: CameraFacing.back,
@@ -559,6 +559,7 @@ class _QrScannerPageState extends State<_QrScannerPage> {
           status: 'completed',
           boardedAt: now,
           landedAt: now,
+          passengerCount: widget.passengerCount,
         );
       } catch (e) {
         // Silently fail to not break the successful payment UX
@@ -584,8 +585,9 @@ class _QrScannerPageState extends State<_QrScannerPage> {
 
       if (!mounted) return;
 
-      // 3. Trigger activity list refresh
-      ProviderScope.containerOf(context).read(tripRefreshProvider.notifier).state++;
+      // 3. Trigger activity list refresh and update balance
+      ref.read(tripRefreshProvider.notifier).state++;
+      await ref.read(authProvider.notifier).refreshProfile();
 
       // 4. Show success overlay and pop back
       await _showSuccessOverlay(amount);

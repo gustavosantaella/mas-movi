@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/colors.dart';
+import '../../../features/auth/providers/auth_provider.dart';
 import '../../../features/shared/providers/trip_refresh_provider.dart';
 import '../../../services/trip/trip_repository.dart';
 import '../../../services/database/trip_service.dart';
@@ -101,8 +102,9 @@ class RecentTripsSectionState extends ConsumerState<RecentTripsSection> {
         driverId: driverId?.toString() ?? '—',
         sessionId: sessionId,
         passengerId: passengerId,
-        onPaid: () {
+        onPaid: () async {
           ref.read(tripRefreshProvider.notifier).state++;
+          await ref.read(authProvider.notifier).refreshProfile();
           _loadTrips();
         },
       ),
@@ -255,13 +257,30 @@ class RecentTripsSectionState extends ConsumerState<RecentTripsSection> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (amount != null)
-                Text(
-                  'Bs. ${(_parseAmount(amount)).toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.charcoal,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Bs. ${(_parseAmount(amount)).toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.charcoal,
+                      ),
+                    ),
+                    if (trip['passenger_count'] != null && (trip['passenger_count'] as int) > 1)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.people_outline, size: 12, color: AppColors.grayNeutral),
+                          const SizedBox(width: 4),
+                          Text(
+                            'x${trip['passenger_count']}',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.grayNeutral),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
               const SizedBox(height: 4),
               Container(

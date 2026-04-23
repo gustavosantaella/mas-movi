@@ -8,6 +8,7 @@ export interface TripDao {
   passengerId: number | null;
   sessionId: string | null;
   amount: number | null;
+  passengerCount: number | null;
   description: string | null;
   directionFrom: string | null;
   directionTo: string | null;
