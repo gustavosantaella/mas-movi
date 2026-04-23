@@ -1,2 +1,19 @@
-bun.lock
+# compiled output
+dist
 node_modules
+bun.lock
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# env
+.env
+
+# logs
+*.log
