@@ -188,7 +188,7 @@ class HomeScreen extends ConsumerWidget {
                       iconBgColor: const Color(0xFFE0F7F0),
                       iconColor: AppColors.successGreen,
                       label: 'Estadísticas',
-                      onTap: () {},
+                      onTap: () => context.push('/stats'),
                     ),
                   ],
                 ),

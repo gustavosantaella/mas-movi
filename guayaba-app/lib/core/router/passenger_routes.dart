@@ -8,6 +8,7 @@ import '../../features/passenger/payments/presentation/affiliates_screen.dart';
 import '../../features/passenger/payments/presentation/send_fare_screen.dart';
 import '../../features/passenger/payments/presentation/transactions_history_screen.dart';
 import '../../features/passenger/rewards/presentation/rewards_screen.dart';
+import '../../features/passenger/stats/presentation/passenger_stats_screen.dart';
 import '../../shared/widgets/passenger_shell.dart';
 
 final passengerRoutes = <RouteBase>[
@@ -28,4 +29,5 @@ final passengerRoutes = <RouteBase>[
   // ─── Full-screen ──────────────
   GoRoute(path: '/pay-fare', builder: (_, __) => const PayFareScreen()),
   GoRoute(path: '/send-fare', builder: (_, __) => const SendFareScreen()),
+  GoRoute(path: '/stats', builder: (_, __) => const PassengerStatsScreen()),
 ];
