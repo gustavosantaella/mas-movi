@@ -7,6 +7,9 @@ import '../../features/passenger/ai_route/presentation/ai_route_screen.dart';
 import '../../features/passenger/payments/presentation/affiliates_screen.dart';
 import '../../features/passenger/payments/presentation/send_fare_screen.dart';
 import '../../features/passenger/payments/presentation/transactions_history_screen.dart';
+import '../../features/passenger/payments/presentation/recharge_screen.dart';
+import '../../features/passenger/payments/presentation/recharge_detail_screen.dart';
+import '../../features/passenger/payments/presentation/recharge_reference_screen.dart';
 import '../../features/passenger/rewards/presentation/rewards_screen.dart';
 import '../../features/passenger/stats/presentation/passenger_stats_screen.dart';
 import '../../shared/widgets/passenger_shell.dart';
@@ -19,6 +22,23 @@ final passengerRoutes = <RouteBase>[
       GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
       GoRoute(path: '/payments', builder: (_, __) => const PaymentScreen(), routes: [
         GoRoute(path: 'history', builder: (_, __) => const TransactionsHistoryScreen()),
+        GoRoute(path: 'recharge', builder: (_, __) => const RechargeScreen(), routes: [
+            GoRoute(
+              path: 'detail',
+              builder: (context, state) {
+                final methodStr = state.uri.queryParameters['method'] ?? 'transfer';
+                final method = RechargeMethod.values.firstWhere(
+                  (e) => e.name == methodStr,
+                  orElse: () => RechargeMethod.transfer,
+                );
+                return RechargeDetailScreen(method: method);
+              },
+            ),
+            GoRoute(
+              path: 'reference',
+              builder: (context, state) => const RechargeReferenceScreen(),
+            ),
+        ]),
       ]),
       GoRoute(path: '/affiliates', builder: (_, __) => const AffiliatesScreen()),
       GoRoute(path: '/ai-route', builder: (_, __) => const AiRouteScreen()),

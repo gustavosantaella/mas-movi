@@ -28,3 +28,21 @@ String get apiBaseUrl {
 
 const urlTermsAndConditions = 'https://movimas.com/terminos-y-condiciones';
 const urlPrivacyPolicy = 'https://movimas.com/politica-de-privacidad';
+
+/// ─── Payment Information ────────────────────────────
+class PaymentInfo {
+  PaymentInfo._();
+
+  // Bank Account Info (Transfer/Deposit)
+  static const holderName = 'Guayaba Mobility C.A.';
+  static const accountNumber = '0102-0345-67-8901234567';
+  static const rif = 'J-40567890-1';
+  static const accountType = 'Corriente';
+  static const bankName = 'Banco de Venezuela';
+
+  // Pago Móvil Info
+  static const phone = '0414-1234567';
+  
+  // Default amount for recharge UI examples
+  static const defaultRechargeAmount = 50.0;
+}
