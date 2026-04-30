@@ -20,6 +20,10 @@ class PayFareScreen extends ConsumerStatefulWidget {
 }
 
 class _PayFareScreenState extends ConsumerState<PayFareScreen> {
+  int _passengerCount = 1;
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authProvider).state.user;
     final balance = user?.balance ?? 0.0;
 
@@ -211,99 +215,29 @@ class _PayFareScreenState extends ConsumerState<PayFareScreen> {
     );
   }
 
-  void _showMultiPassDialog() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 40, height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.borderLightGray,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Multipasaje',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.charcoal),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Selecciona cuántos pasajes deseas pagar',
-                      style: TextStyle(fontSize: 14, color: AppColors.grayNeutral),
-                    ),
-                    const SizedBox(height: 32),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildCounterBtn(Icons.remove, () {
-                          if (_passengerCount > 1) {
-                            setModalState(() => _passengerCount--);
-                            setState(() {});
-                          }
-                        }),
-                        const SizedBox(width: 32),
-                        Text(
-                          '$_passengerCount',
-                          style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: AppColors.charcoal),
-                        ),
-                        const SizedBox(width: 32),
-                        _buildCounterBtn(Icons.add, () {
-                          if (_passengerCount < 10) {
-                            setModalState(() => _passengerCount++);
-                            setState(() {});
-                          }
-                        }),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.salmon,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          elevation: 0,
-                        ),
-                        child: const Text('Confirmar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-        );
-      },
-    );
-  }
 
-  Widget _buildCounterBtn(IconData icon, VoidCallback onTap) {
+  Widget _buildCounterBtn(IconData icon, VoidCallback onTap, {bool isSmall = false, bool isAdd = false}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 56, height: 56,
+        width: isSmall ? 48 : 56,
+        height: isSmall ? 48 : 56,
         decoration: BoxDecoration(
-          color: AppColors.bgLightGray,
+          color: isAdd ? AppColors.salmon : AppColors.bgLightGray,
           shape: BoxShape.circle,
+          boxShadow: isAdd ? [
+            BoxShadow(
+              color: AppColors.salmon.withValues(alpha: 0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            )
+          ] : null,
         ),
-        child: Icon(icon, color: AppColors.charcoal, size: 28),
+        child: Icon(
+          icon,
+          color: isAdd ? Colors.white : AppColors.charcoal,
+          size: isSmall ? 22 : 28,
+        ),
       ),
     );
   }
@@ -385,8 +319,78 @@ class _QrScannerPageState extends ConsumerState<_QrScannerPage> {
       return;
     }
 
-    // Check driver status and auto-pay
-    _checkAndPay(driverId, qrData);
+    // Check driver status and show confirmation
+    _confirmPayment(driverId, qrData);
+  }
+
+  Future<void> _confirmPayment(dynamic driverId, Map<String, dynamic> qrData) async {
+    final fareValue = qrData['amount'] ?? 1.50;
+    final farePerPerson = fareValue is num ? fareValue.toDouble() : (double.tryParse(fareValue.toString()) ?? 1.50);
+    final total = farePerPerson * widget.passengerCount;
+    final user = ref.read(authProvider).state.user;
+    final balance = user?.balance ?? 0.0;
+    final remaining = balance - total;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Confirmar Pago', style: TextStyle(fontWeight: FontWeight.w800)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('¿Deseas procesar este pago?', style: TextStyle(color: AppColors.grayNeutral)),
+            const SizedBox(height: 16),
+            _buildRow('Pasajes', '${widget.passengerCount}'),
+            _buildRow('Total a pagar', 'Bs. ${total.toStringAsFixed(2)}', isBold: true),
+            const Divider(height: 24),
+            _buildRow('Saldo después', 'Bs. ${remaining.toStringAsFixed(2)}', color: remaining < 0 ? AppColors.salmon : AppColors.successGreen),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar', style: TextStyle(color: AppColors.grayNeutral, fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.salmon,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: const Text('Pagar ahora', style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      _checkAndPay(driverId, qrData);
+    } else {
+      setState(() => _scanned = false);
+      _controller.start();
+    }
+  }
+
+  Widget _buildRow(String label, String value, {bool isBold = false, Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 14, color: AppColors.grayNeutral)),
+          Text(value, style: TextStyle(
+            fontSize: 14, 
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            color: color ?? AppColors.charcoal,
+          )),
+        ],
+      ),
+    );
   }
 
   /// Pay immediately — no driver-active check required.
