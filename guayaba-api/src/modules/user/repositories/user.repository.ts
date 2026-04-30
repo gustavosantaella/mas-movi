@@ -33,7 +33,8 @@ export class UserRepository {
 
   async newUser(dto: RegisterDto, hashedPassword: string): Promise<User> {
     const user = new User();
-    user.email = dto.email;
+    if (dto.phoneNumber) user.phoneNumber = dto.phoneNumber;
+    user.email = dto.email!;
     user.password = hashedPassword;
     user.userType = [dto.userType];
     user.dni = dto.dni?.split(".").join("");

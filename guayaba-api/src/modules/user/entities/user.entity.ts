@@ -22,7 +22,7 @@ export class User {
   @Column({ default: false, nullable: true })
   emailConfirmed!: boolean;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   email!: string;
 
   @Column({ unique: true, nullable: true })

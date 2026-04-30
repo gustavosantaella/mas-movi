@@ -21,7 +21,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   final _passwordCtrl = TextEditingController();
   bool _rememberMe = false;
   bool _loading = false;
-  int _loginMethod = 0; // 0: Email, 1: Phone
+  int _loginMethod = 1; // 1: Phone, 0: Email
   late AnimationController _logoAnim;
   late Animation<double> _logoScale;
   late Animation<double> _logoOpacity;
@@ -77,7 +77,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     try {
       final repo = AuthRepository();
       final token = await repo.login(
-        email: _emailCtrl.text,
+        identifier: _emailCtrl.text,
         password: _passwordCtrl.text,
         rememberPassword: _rememberMe,
       );
@@ -153,7 +153,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       duration: const Duration(milliseconds: 250),
                       curve: Curves.easeInOut,
                       alignment:
-                          _loginMethod == 0
+                          _loginMethod == 1
                               ? Alignment.centerLeft
                               : Alignment.centerRight,
                       child: FractionallySizedBox(
@@ -180,32 +180,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           child: GestureDetector(
                             onTap:
                                 () => setState(() {
-                                  _loginMethod = 0;
-                                  _emailCtrl.clear();
-                                }),
-                            behavior: HitTestBehavior.opaque,
-                            child: Center(
-                              child: Text(
-                                'Correo',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight:
-                                      _loginMethod == 0
-                                          ? FontWeight.w700
-                                          : FontWeight.w600,
-                                  color:
-                                      _loginMethod == 0
-                                          ? AppColors.salmon
-                                          : AppColors.grayNeutral,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap:
-                                () => setState(() {
                                   _loginMethod = 1;
                                   _emailCtrl.clear();
                                 }),
@@ -221,6 +195,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                           : FontWeight.w600,
                                   color:
                                       _loginMethod == 1
+                                          ? AppColors.salmon
+                                          : AppColors.grayNeutral,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap:
+                                () => setState(() {
+                                  _loginMethod = 0;
+                                  _emailCtrl.clear();
+                                }),
+                            behavior: HitTestBehavior.opaque,
+                            child: Center(
+                              child: Text(
+                                'Correo',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight:
+                                      _loginMethod == 0
+                                          ? FontWeight.w700
+                                          : FontWeight.w600,
+                                  color:
+                                      _loginMethod == 0
                                           ? AppColors.salmon
                                           : AppColors.grayNeutral,
                                 ),

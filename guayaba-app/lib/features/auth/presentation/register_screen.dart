@@ -41,6 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
   String? _editingField;
 
   // ─── Step 3: Credentials ────────
+  final _phoneCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
@@ -62,6 +63,7 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
   @override
   void dispose() {
     _logoCtrl.dispose();
+    _phoneCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
@@ -165,7 +167,8 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
     try {
       final repo = AuthRepository();
       await repo.register(
-        email: _emailCtrl.text.trim(),
+        phoneNumber: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+        email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
         password: _passwordCtrl.text,
         userType: _role == 'conductor' ? 3 : 2,
         dni: _editedData['documentNumber'] ?? '',
@@ -359,6 +362,7 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
       case 3:
         return _StepCredentials(
           key: const ValueKey('step3'),
+          phoneCtrl: _phoneCtrl,
           emailCtrl: _emailCtrl,
           passwordCtrl: _passwordCtrl,
           confirmCtrl: _confirmCtrl,
@@ -853,7 +857,8 @@ class _StepVerifyData extends StatelessWidget {
 // ═════════════════════════════════════════════════
 //  STEP 3 — Credentials (email, password, terms)
 // ═════════════════════════════════════════════════
-class _StepCredentials extends StatelessWidget {
+class _StepCredentials extends StatefulWidget {
+  final TextEditingController phoneCtrl;
   final TextEditingController emailCtrl;
   final TextEditingController passwordCtrl;
   final TextEditingController confirmCtrl;
@@ -864,133 +869,260 @@ class _StepCredentials extends StatelessWidget {
 
   const _StepCredentials({
     super.key,
-    required this.emailCtrl, required this.passwordCtrl, required this.confirmCtrl,
-    required this.acceptedTerms, required this.onToggleTerms,
-    required this.onRegister, this.loading = false,
+    required this.phoneCtrl,
+    required this.emailCtrl,
+    required this.passwordCtrl,
+    required this.confirmCtrl,
+    required this.acceptedTerms,
+    required this.onToggleTerms,
+    required this.onRegister,
+    this.loading = false,
   });
 
   @override
+  State<_StepCredentials> createState() => _StepCredentialsState();
+}
+
+class _StepCredentialsState extends State<_StepCredentials> {
+  int _method = 1; // 1: Phone, 0: Email
+
+  @override
   Widget build(BuildContext context) {
-    return StatefulBuilder(
-      builder: (context, setLocalState) {
-        final email = emailCtrl.text.trim();
-        final password = passwordCtrl.text;
-        final confirm = confirmCtrl.text;
+    final phone = widget.phoneCtrl.text.trim();
+    final email = widget.emailCtrl.text.trim();
+    final password = widget.passwordCtrl.text;
+    final confirm = widget.confirmCtrl.text;
 
-        final isValidEmail = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email);
-        final isValidPassword = password.length >= 8 && RegExp(r'[A-Z]').hasMatch(password) && RegExp(r'[^A-Za-z0-9]').hasMatch(password);
-        final passwordsMatch = password == confirm && confirm.isNotEmpty;
-        final canSubmit = isValidEmail && isValidPassword && passwordsMatch && acceptedTerms;
+    final isValidPhone = RegExp(r'^[0-9]{10,12}$').hasMatch(phone);
+    final isValidEmail = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email);
+    final isValidPassword = password.length >= 8 &&
+        RegExp(r'[A-Z]').hasMatch(password) &&
+        RegExp(r'[^A-Za-z0-9]').hasMatch(password);
+    final passwordsMatch = password == confirm && confirm.isNotEmpty;
 
-        return Column(
-          children: [
-            const Text('Crear Cuenta', textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.charcoal, letterSpacing: -0.5)),
-            const SizedBox(height: 8),
-            const Text('Completa tus datos para registrarte', textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.grayNeutral)),
-            const SizedBox(height: 24),
+    // Validation:
+    // If method is Phone (1): Phone is required, Email is optional (but must be valid if not empty)
+    // If method is Email (0): Email is required, Phone is optional (but must be valid if not empty)
+    bool canSubmit = false;
+    if (_method == 1) {
+      canSubmit = isValidPhone && (email.isEmpty || isValidEmail);
+    } else {
+      canSubmit = isValidEmail && (phone.isEmpty || isValidPhone);
+    }
+    canSubmit = canSubmit && isValidPassword && passwordsMatch && widget.acceptedTerms;
 
-            AppInput(
-              label: 'Correo electrónico',
-              icon: Icons.mail_outline,
-              placeholder: 'tu@correo.com',
-              type: 'email',
-              controller: emailCtrl,
-              onChanged: (_) => setLocalState(() {}),
-            ),
-            AppInput(
-              label: 'Contraseña',
-              icon: Icons.lock_outline,
-              placeholder: '••••••••',
-              type: 'password',
-              controller: passwordCtrl,
-              showPasswordValidator: true,
-              helpDescription: 'Mínimo 8 caracteres, 1 mayúscula y 1 símbolo especial.',
-              onChanged: (_) => setLocalState(() {}),
-            ),
-            AppInput(
-              label: 'Confirmar contraseña',
-              icon: Icons.shield_outlined,
-              placeholder: '••••••••',
-              type: 'password',
-              controller: confirmCtrl,
-              onChanged: (_) => setLocalState(() {}),
-            ),
+    return Column(
+      children: [
+        const Text(
+          'Crear Cuenta',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.charcoal, letterSpacing: -0.5),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Completa tus datos para registrarte',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.grayNeutral),
+        ),
+        const SizedBox(height: 24),
 
-            // Password mismatch warning
-            if (confirm.isNotEmpty && !passwordsMatch)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(children: [
-                  const Icon(Icons.error_outline, size: 14, color: AppColors.salmon),
-                  const SizedBox(width: 6),
-                  const Text('Las contraseñas no coinciden',
-                    style: TextStyle(fontSize: 12, color: AppColors.salmon, fontWeight: FontWeight.w500)),
-                ]),
-              ),
-
-            const SizedBox(height: 4),
-
-            // Terms checkbox
-            GestureDetector(
-              onTap: onToggleTerms,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 22, height: 22,
-                    margin: const EdgeInsets.only(right: 12, top: 2),
+        // ─── Method Selector (same as login) ───
+        Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: AppColors.bgLightGray,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.borderLightGray),
+          ),
+          child: Stack(
+            children: [
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                alignment: _method == 1 ? Alignment.centerLeft : Alignment.centerRight,
+                child: FractionallySizedBox(
+                  widthFactor: 0.5,
+                  child: Container(
+                    margin: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: acceptedTerms ? AppColors.salmon : Colors.transparent,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: acceptedTerms ? AppColors.salmon : AppColors.borderLightGray,
-                        width: 1.5,
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() {
+                        _method = 1;
+                        widget.emailCtrl.clear();
+                      }),
+                      behavior: HitTestBehavior.opaque,
+                      child: Center(
+                        child: Text(
+                          'Teléfono',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: _method == 1 ? FontWeight.w700 : FontWeight.w600,
+                            color: _method == 1 ? AppColors.salmon : AppColors.grayNeutral,
+                          ),
+                        ),
                       ),
                     ),
-                    child: acceptedTerms ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
                   ),
                   Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        text: 'Acepto los ',
-                        style: const TextStyle(fontSize: 13, height: 1.5, color: AppColors.grayNeutral),
-                        children: [
-                          WidgetSpan(
-                            child: GestureDetector(
-                              onTap: () => launchUrl(Uri.parse(urlTermsAndConditions)),
-                              child: const Text('Términos y Condiciones',
-                                style: TextStyle(fontSize: 13, color: AppColors.salmon, fontWeight: FontWeight.w600, decoration: TextDecoration.underline)),
-                            ),
+                    child: GestureDetector(
+                      onTap: () => setState(() {
+                        _method = 0;
+                        widget.phoneCtrl.clear();
+                      }),
+                      behavior: HitTestBehavior.opaque,
+                      child: Center(
+                        child: Text(
+                          'Correo',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: _method == 0 ? FontWeight.w700 : FontWeight.w600,
+                            color: _method == 0 ? AppColors.salmon : AppColors.grayNeutral,
                           ),
-                          const TextSpan(text: ' y la '),
-                          WidgetSpan(
-                            child: GestureDetector(
-                              onTap: () => launchUrl(Uri.parse(urlPrivacyPolicy)),
-                              child: const Text('Política de Privacidad',
-                                style: TextStyle(fontSize: 13, color: AppColors.salmon, fontWeight: FontWeight.w600, decoration: TextDecoration.underline)),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
 
-            const SizedBox(height: 24),
+        if (_method == 1)
+          AppInput(
+            label: 'Número de teléfono',
+            icon: Icons.phone_android_outlined,
+            placeholder: '04121234567',
+            type: 'number',
+            controller: widget.phoneCtrl,
+            onChanged: (_) => setState(() {}),
+          )
+        else
+          AppInput(
+            label: 'Correo electrónico',
+            icon: Icons.mail_outline,
+            placeholder: 'tu@correo.com',
+            type: 'email',
+            controller: widget.emailCtrl,
+            onChanged: (_) => setState(() {}),
+          ),
+        AppInput(
+          label: 'Contraseña',
+          icon: Icons.lock_outline,
+          placeholder: '••••••••',
+          type: 'password',
+          controller: widget.passwordCtrl,
+          showPasswordValidator: true,
+          helpDescription: 'Mínimo 8 caracteres, 1 mayúscula y 1 símbolo especial.',
+          onChanged: (_) => setState(() {}),
+        ),
+        AppInput(
+          label: 'Confirmar contraseña',
+          icon: Icons.shield_outlined,
+          placeholder: '••••••••',
+          type: 'password',
+          controller: widget.confirmCtrl,
+          onChanged: (_) => setState(() {}),
+        ),
 
-            GradientButton(
-              label: 'Registrarse',
-              onPressed: canSubmit ? onRegister : null,
-              loading: loading,
-            ),
-            const SizedBox(height: 24),
-          ],
-        );
-      },
+        // Password mismatch warning
+        if (confirm.isNotEmpty && !passwordsMatch)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: const Row(children: [
+              Icon(Icons.error_outline, size: 14, color: AppColors.salmon),
+              SizedBox(width: 6),
+              Text('Las contraseñas no coinciden',
+                  style: TextStyle(fontSize: 12, color: AppColors.salmon, fontWeight: FontWeight.w500)),
+            ]),
+          ),
+
+        const SizedBox(height: 4),
+
+        // Terms checkbox
+        GestureDetector(
+          onTap: widget.onToggleTerms,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                margin: const EdgeInsets.only(right: 12, top: 2),
+                decoration: BoxDecoration(
+                  color: widget.acceptedTerms ? AppColors.salmon : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: widget.acceptedTerms ? AppColors.salmon : AppColors.borderLightGray,
+                    width: 1.5,
+                  ),
+                ),
+                child: widget.acceptedTerms ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
+              ),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    text: 'Acepto los ',
+                    style: const TextStyle(fontSize: 13, height: 1.5, color: AppColors.grayNeutral),
+                    children: [
+                      WidgetSpan(
+                        child: GestureDetector(
+                          onTap: () => launchUrl(Uri.parse(urlTermsAndConditions)),
+                          child: const Text('Términos y Condiciones',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.salmon,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline)),
+                        ),
+                      ),
+                      const TextSpan(text: ' y la '),
+                      WidgetSpan(
+                        child: GestureDetector(
+                          onTap: () => launchUrl(Uri.parse(urlPrivacyPolicy)),
+                          child: const Text('Política de Privacidad',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.salmon,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        GradientButton(
+          label: 'Registrarse',
+          onPressed: canSubmit ? widget.onRegister : null,
+          loading: widget.loading,
+        ),
+        const SizedBox(height: 24),
+      ],
     );
   }
 }
+

@@ -7,14 +7,14 @@ class AuthRepository {
   final _api = ApiClient();
 
   Future<String> login({
-    required String email,
+    required String identifier,
     required String password,
     bool rememberPassword = false,
   }) async {
     final response = await _api.dio.post(
       '/auth/login',
       data: {
-        'email': email,
+        'email': identifier,
         'password': password,
         'rememberPassword': rememberPassword,
       },
@@ -25,7 +25,8 @@ class AuthRepository {
   }
 
   Future<void> register({
-    required String email,
+    String? phoneNumber,
+    String? email,
     required String password,
     required int userType,
     required String dni,
@@ -37,6 +38,7 @@ class AuthRepository {
     final response = await _api.dio.post(
       '/auth/register',
       data: {
+        if (phoneNumber != null) 'phoneNumber': phoneNumber,
         'email': email,
         'password': password,
         'userType': userType,

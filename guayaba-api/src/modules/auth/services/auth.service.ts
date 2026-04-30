@@ -52,9 +52,24 @@ export class AuthService {
   }
 
   public async register(dto: RegisterDto): Promise<void> {
-    const existing = await this.userRepository.findByEmail(dto.email);
-    if (existing) {
-      throw new ConflictException('Ya existe un usuario con ese correo.');
+    if (!dto.phoneNumber && !dto.email) {
+      throw new ConflictException('Debes proporcionar al menos un número de teléfono o un correo electrónico.');
+    }
+
+    // 1. Check for existing phone if provided
+    if (dto.phoneNumber) {
+      const existingPhone = await this.userRepository.findByPhone(dto.phoneNumber);
+      if (existingPhone) {
+        throw new ConflictException('Ya existe un usuario con ese número de teléfono.');
+      }
+    }
+
+    // 2. Check for existing email if provided
+    if (dto.email) {
+      const existingEmail = await this.userRepository.findByEmail(dto.email);
+      if (existingEmail) {
+        throw new ConflictException('Ya existe un usuario con ese correo.');
+      }
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -63,28 +78,29 @@ export class AuthService {
     // Initial Wallet creation
     await this.walletService.updateBalance(user.id, 0);
 
-    // Generate confirmation token & URL
-    const confirmToken = this.jwtService.generateToken(
-      { sub: user.id, email: user.email, purpose: 'email-confirm' },
-      false,
-    );
-    let confirmUrl = this.confirmUrl;
-    confirmUrl = `${confirmUrl}token=${confirmToken}`;
+    // 3. Optional Email Confirmation
+    if (dto.email) {
+      const confirmToken = this.jwtService.generateToken(
+        { sub: user.id, email: user.email, purpose: 'email-confirm' },
+        false,
+      );
+      const confirmUrl = `${this.confirmUrl}token=${confirmToken}`;
 
-    // Send confirmation email (non-blocking)
-    const roleLabel = dto.userType === 3 ? 'Conductor' : 'Pasajero';
-    setImmediate(() => {
-      this.mailtrapService
-        .sendRegistrationEmail(
-          dto.email,
-          dto.firstName ?? '',
-          roleLabel,
-          confirmUrl,
-        )
-        .catch((err) =>
-          this.logger.error(`Error sending registration email: ${err.message}`),
-        );
-    });
+      // Send confirmation email (non-blocking)
+      const roleLabel = dto.userType === 3 ? 'Conductor' : 'Pasajero';
+      setImmediate(() => {
+        this.mailtrapService
+          .sendRegistrationEmail(
+            dto.email!,
+            dto.firstName ?? '',
+            roleLabel,
+            confirmUrl,
+          )
+          .catch((err) =>
+            this.logger.error(`Error sending registration email: ${err.message}`),
+          );
+      });
+    }
   }
 
   /**
