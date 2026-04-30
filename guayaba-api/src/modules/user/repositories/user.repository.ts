@@ -55,12 +55,13 @@ export class UserRepository {
 
   async updateProfile(
     userId: number,
-    fields: { firstName?: string; lastName?: string; dateOfBirth?: string },
+    fields: { firstName?: string; lastName?: string; dateOfBirth?: string; phoneNumber?: string },
   ): Promise<Omit<User, 'password'> | null> {
     const updateData: Partial<User> = {};
     if (fields.firstName !== undefined) updateData.firstName = fields.firstName;
     if (fields.lastName !== undefined) updateData.lastName = fields.lastName;
     if (fields.dateOfBirth !== undefined) updateData.dateOfBirth = fields.dateOfBirth;
+    if (fields.phoneNumber !== undefined) updateData.phoneNumber = fields.phoneNumber;
 
     await this.repo.update(userId, updateData);
     return this.findById(userId);

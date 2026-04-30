@@ -3,6 +3,7 @@ class UserProfile {
   final String firstName;
   final String lastName;
   final String email;
+  final String phoneNumber;
   final String dni;
   final String sex;
   final String dateOfBirth;
@@ -18,6 +19,7 @@ class UserProfile {
     required this.firstName,
     required this.lastName,
     required this.email,
+    required this.phoneNumber,
     required this.dni,
     required this.sex,
     required this.dateOfBirth,
@@ -36,6 +38,7 @@ class UserProfile {
         firstName: json['firstName'] as String? ?? '',
         lastName: json['lastName'] as String? ?? '',
         email: json['email'] as String? ?? '',
+        phoneNumber: json['phoneNumber'] as String? ?? '',
         dni: json['dni'] as String? ?? '',
         sex: json['sex'] as String? ?? '',
         dateOfBirth: json['dateOfBirth'] as String? ?? '',
@@ -52,6 +55,7 @@ class UserProfile {
         'firstName': firstName,
         'lastName': lastName,
         'email': email,
+        'phoneNumber': phoneNumber,
         'dni': dni,
         'sex': sex,
         'dateOfBirth': dateOfBirth,

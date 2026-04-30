@@ -30,7 +30,7 @@ export class UserService {
 
   async updateProfile(
     userId: number,
-    fields: { firstName?: string; lastName?: string; dateOfBirth?: string },
+    fields: { firstName?: string; lastName?: string; dateOfBirth?: string; phoneNumber?: string },
   ): Promise<UserDao | null> {
     return this.userRepository.updateProfile(userId, fields) as Promise<UserDao | null>;
   }

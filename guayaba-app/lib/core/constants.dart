@@ -42,7 +42,7 @@ class PaymentInfo {
 
   // Pago Móvil Info
   static const phone = '0414-1234567';
-  
+
   // Default amount for recharge UI examples
   static const defaultRechargeAmount = 50.0;
 }

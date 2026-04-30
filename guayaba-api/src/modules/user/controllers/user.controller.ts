@@ -55,7 +55,7 @@ export class UserController extends BaseController {
    */
   @Patch('me')
   async updateProfile(
-    @Body() body: { firstName?: string; lastName?: string; dateOfBirth?: string },
+    @Body() body: { firstName?: string; lastName?: string; dateOfBirth?: string; phoneNumber?: string },
     @Res() res: Response,
   ) {
     try {
@@ -69,6 +69,7 @@ export class UserController extends BaseController {
         firstName: body.firstName,
         lastName: body.lastName,
         dateOfBirth: body.dateOfBirth,
+        phoneNumber: body.phoneNumber,
       });
 
       this.send(res, this.success(updated, 'Perfil actualizado.'));

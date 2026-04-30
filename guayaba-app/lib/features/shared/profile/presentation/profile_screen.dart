@@ -116,6 +116,7 @@ class _ProfileContent extends ConsumerWidget {
 
         // ─── Info cards ──────
         _InfoCard(label: 'Email', value: user?.email ?? '—'),
+        _InfoCard(label: 'Teléfono', value: user?.phoneNumber ?? '—'),
         _InfoCard(label: 'Nombre', value: fullName),
         _InfoCard(label: 'Saldo disponible', value: 'Bs. ${user?.balance.toStringAsFixed(2) ?? '0.00'}'),
         const _InfoCard(label: 'Miembro desde', value: 'Marzo de 2026'),

@@ -19,6 +19,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
   final _dobCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   String? _dobIso;
   String _email = '';
   String _dni = '';
@@ -31,6 +32,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     _firstNameCtrl.dispose();
     _lastNameCtrl.dispose();
     _dobCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -41,6 +43,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     _firstNameCtrl.text = user.firstName;
     _lastNameCtrl.text = user.lastName;
     _dobCtrl.text = DateFormatter.toDMY(user.dateOfBirth);
+    _phoneCtrl.text = user.phoneNumber;
     _email = user.email;
     _dni = user.dni;
     _sex = user.sex;
@@ -58,6 +61,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
         'firstName': _firstNameCtrl.text.trim(),
         'lastName': _lastNameCtrl.text.trim(),
         'dateOfBirth': _dobIso ?? _dobCtrl.text.trim(),
+        'phoneNumber': _phoneCtrl.text.trim(),
         'sex': _sex,
       });
       ref.read(authProvider).updateUser(updated);
@@ -123,6 +127,13 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
               icon: Icons.person_outline,
               placeholder: 'Tu apellido',
               controller: _lastNameCtrl,
+            ),
+            AppInput(
+              label: 'Número de teléfono',
+              icon: Icons.phone_android_outlined,
+              placeholder: '04121234567',
+              type: 'number',
+              controller: _phoneCtrl,
             ),
             AppInput(
               label: 'Fecha de nacimiento',
