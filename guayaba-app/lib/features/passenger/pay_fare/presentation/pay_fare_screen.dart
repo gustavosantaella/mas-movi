@@ -20,10 +20,9 @@ class PayFareScreen extends ConsumerStatefulWidget {
 }
 
 class _PayFareScreenState extends ConsumerState<PayFareScreen> {
-  int _passengerCount = 1;
+    final user = ref.watch(authProvider).state.user;
+    final balance = user?.balance ?? 0.0;
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
       body: SafeArea(
@@ -31,8 +30,7 @@ class _PayFareScreenState extends ConsumerState<PayFareScreen> {
           children: [
             // ─── Header ────────────────────────────────
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               child: Row(
                 children: [
                   GestureDetector(
@@ -43,20 +41,14 @@ class _PayFareScreenState extends ConsumerState<PayFareScreen> {
                         color: AppColors.charcoal.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.arrow_back_ios_new,
-                          size: 18, color: AppColors.charcoal),
+                      child: const Icon(Icons.arrow_back_ios_new, size: 18, color: AppColors.charcoal),
                     ),
                   ),
                   const Expanded(
                     child: Text(
                       'Pagar pasaje',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.charcoal,
-                        letterSpacing: -0.3,
-                      ),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.charcoal, letterSpacing: -0.3),
                     ),
                   ),
                   const SizedBox(width: 34),
@@ -67,133 +59,110 @@ class _PayFareScreenState extends ConsumerState<PayFareScreen> {
             // ─── Body ─────────────────────────────────
             Expanded(
               child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 20),
                     // Hero icon
                     Container(
-                      width: 100,
-                      height: 100,
+                      width: 130,
+                      height: 130,
                       decoration: BoxDecoration(
                         color: AppColors.salmon.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
-                        child: Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: AppGradients.salmonButton,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    AppColors.salmon.withValues(alpha: 0.3),
-                                blurRadius: 16,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.qr_code_scanner,
-                              size: 30, color: Colors.white),
-                        ),
+                        child: Icon(Icons.qr_code_2_rounded, size: 64, color: AppColors.salmon.withValues(alpha: 0.8)),
                       ),
                     ),
                     const SizedBox(height: 24),
 
                     const Text(
-                      'Escanea y paga',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.charcoal,
-                        letterSpacing: -0.3,
-                      ),
+                      'Selecciona Pasajes',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.charcoal, letterSpacing: -0.5),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Apunta al QR del autobús y se paga automáticamente',
+                      '¿Cuántos pasajes deseas pagar?',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.grayNeutral,
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppColors.grayNeutral),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // ─── Counter Card ────────────────────────
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppColors.borderLightGray.withValues(alpha: 0.5)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildCounterBtn(Icons.remove, () {
+                                if (_passengerCount > 1) setState(() => _passengerCount--);
+                              }, isSmall: true),
+                              const SizedBox(width: 24),
+                              Column(
+                                children: [
+                                  Text(
+                                    '$_passengerCount',
+                                    style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: AppColors.charcoal),
+                                  ),
+                                  Text(
+                                    _passengerCount == 1 ? 'pasaje' : 'pasajes',
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.grayNeutral),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 24),
+                              _buildCounterBtn(Icons.add, () {
+                                if (_passengerCount < 10) setState(() => _passengerCount++);
+                              }, isSmall: true, isAdd: true),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 36),
 
-                    // ─── Scan button ────────────────────────
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => _openScanner(context, ref),
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              color: AppColors.bgLightGray,
-                              borderRadius: BorderRadius.circular(20),
-                              border:
-                                  Border.all(color: AppColors.borderLightGray),
+                    const SizedBox(height: 32),
+
+                    // ─── Scan Button ────────────────────────
+                    GestureDetector(
+                      onTap: () => _openScanner(context, ref),
+                      child: Container(
+                        width: double.infinity,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.salmon, AppColors.salmonLight],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.salmon.withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 52,
-                                  height: 52,
-                                  decoration: BoxDecoration(
-                                    color:
-                                        AppColors.salmon.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: const Icon(Icons.qr_code,
-                                      size: 28, color: AppColors.salmon),
-                                ),
-                                const SizedBox(width: 16),
-                                const Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Abrir escáner',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.charcoal,
-                                        ),
-                                      ),
-                                      SizedBox(height: 3),
-                                      Text(
-                                        'Escanea el QR y se paga de una vez',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: AppColors.grayNeutral,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.salmon
-                                        .withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(Icons.arrow_forward_ios,
-                                      size: 14,
-                                      color: AppColors.salmon
-                                          .withValues(alpha: 0.7)),
-                                ),
-                              ],
-                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Escanear QR',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
                           ),
                         ),
                       ),
@@ -201,112 +170,32 @@ class _PayFareScreenState extends ConsumerState<PayFareScreen> {
 
                     const SizedBox(height: 16),
 
-                    // ─── Multipasaje button ──────────────────
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: _showMultiPassDialog,
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                            decoration: BoxDecoration(
-                              color: _passengerCount > 1 
-                                ? AppColors.salmon.withValues(alpha: 0.05) 
-                                : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: _passengerCount > 1 
-                                  ? AppColors.salmon.withValues(alpha: 0.3) 
-                                  : AppColors.borderLightGray
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  decoration: BoxDecoration(
-                                    color: (_passengerCount > 1 ? AppColors.salmon : AppColors.charcoal).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(Icons.group_add,
-                                      size: 22, color: _passengerCount > 1 ? AppColors.salmon : AppColors.charcoal),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Multipasaje',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.charcoal,
-                                        ),
-                                      ),
-                                      Text(
-                                        _passengerCount == 1 
-                                          ? 'Pagar solo por ti' 
-                                          : 'Pagando por $_passengerCount personas',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: _passengerCount > 1 ? FontWeight.w600 : FontWeight.w400,
-                                          color: _passengerCount > 1 ? AppColors.salmon : AppColors.grayNeutral,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: _passengerCount > 1 ? AppColors.salmon : AppColors.bgLightGray,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    'x$_passengerCount',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w800,
-                                      color: _passengerCount > 1 ? Colors.white : AppColors.charcoal,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-                    // Fare info
+                    // ─── Balance Card ───────────────────────
                     Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 40),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: AppColors.bgLightGray,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.borderLightGray),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.borderLightGray.withValues(alpha: 0.5)),
                       ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.info_outline,
-                              size: 16, color: AppColors.grayNeutral),
-                          SizedBox(width: 8),
+                          Row(
+                            children: [
+                              Icon(Icons.account_balance_wallet_outlined, size: 18, color: AppColors.charcoal.withValues(alpha: 0.6)),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Saldo disponible',
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.charcoal.withValues(alpha: 0.6)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
                           Text(
-                            'Escanea para pagar la tarifa',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.grayNeutral,
-                            ),
+                            'Bs. ${balance.toStringAsFixed(2)}',
+                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.charcoal, letterSpacing: -0.5),
                           ),
                         ],
                       ),

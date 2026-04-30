@@ -137,27 +137,30 @@ class HomeScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: 16),
                             // Recargar button
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.account_balance_wallet_outlined, size: 18, color: AppColors.salmon),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Recargar Monedero',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.salmon,
+                            GestureDetector(
+                              onTap: () => context.push('/payments/recharge'),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.account_balance_wallet_outlined, size: 18, color: AppColors.salmon),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Recargar Monedero',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.salmon,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ],
